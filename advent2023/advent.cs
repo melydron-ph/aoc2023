@@ -6,9 +6,9 @@ using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AoC
+namespace advent2023
 {
-    internal class Stardust
+    internal class Advent
     {
         static void Main(string[] args)
         {
