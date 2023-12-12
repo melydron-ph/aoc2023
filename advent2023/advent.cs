@@ -18,10 +18,10 @@ namespace advent2023
             Day1_Star2();
             Day2_Star1();
             Day2_Star2();
+            Day3_Star1();
             ExitConsole();
         }
 
-        // ------ Day 1 -- Star 1 ------
         private static void Day1_Star1()
         {
             var textFile = @"C:\aoc\2023\day1\input.txt";
@@ -29,29 +29,14 @@ namespace advent2023
             int totalSum = 0;
             foreach (string line in lines)
             {
-                int firstDigit = getFirstDigitFromString(line);
-                int secondDigit = getFirstDigitFromString(reverseString(line));
+                int firstDigit = Helper.GetFirstDigitFromString(line);
+                int secondDigit = Helper.GetFirstDigitFromString(Helper.ReverseString(line));
                 int lineSum = int.Parse(firstDigit.ToString() + secondDigit.ToString());
                 totalSum += lineSum;
             }
             Console.WriteLine("1*1 -- Total Sum: " + totalSum);
         }
-        private static string reverseString(string str)
-        {
-            char[] charArray = str.ToCharArray();
-            Array.Reverse(charArray);
-            return new string(charArray);
-        }
-        private static int getFirstDigitFromString(string str)
-        {
-            string firstDigit = new string(str.SkipWhile(c => !char.IsDigit(c)).Take(1).ToArray());
-            if (firstDigit.Length == 0)
-                return -1;
-            else
-                return Convert.ToInt32(firstDigit);
-        }
 
-        // ------ Day 1 -- Star 2 ------
         private static void Day1_Star2()
         {
             //var textFile = @"C:\aoc\star2\test.txt";
@@ -60,9 +45,9 @@ namespace advent2023
             int totalSum = 0;
             foreach (string line in lines)
             {
-                string newLine = replaceWordsToDigits(line);
-                int firstDigit = getFirstDigitFromString(newLine);
-                int secondDigit = getFirstDigitFromString(reverseString(newLine));
+                string newLine = Helper.ReplaceWordsToDigits(line);
+                int firstDigit = Helper.GetFirstDigitFromString(newLine);
+                int secondDigit = Helper.GetFirstDigitFromString(Helper.ReverseString(newLine));
                 int lineSum = 0;
                 lineSum = int.Parse(firstDigit.ToString() + secondDigit.ToString());
                 totalSum += lineSum;
@@ -70,37 +55,6 @@ namespace advent2023
             Console.WriteLine("1*2 -- Total Sum: " + totalSum);
         }
 
-        private static string replaceWordsToDigits(string str)
-        {
-            var wordToDigit = new Dictionary<string, string>
-            {
-                { "one", "1"},
-                { "two", "2"},
-                { "three", "3"},
-                { "four", "4"},
-                { "five", "5"},
-                { "six", "6"},
-                { "seven", "7"},
-                { "eight", "8"},
-                { "nine", "9"}
-            };
-
-            var word = new StringBuilder();
-            foreach (char c in str)
-            {
-                word.Append(c);
-                foreach (var kvp in wordToDigit)
-                {
-                    if (word.ToString().Contains(kvp.Key))
-                    {
-                        word.Replace(kvp.Key, kvp.Key[0] + kvp.Value + kvp.Key[kvp.Key.Length - 1]);
-                    }
-                }
-            }
-            return word.ToString();
-        }
-
-        // ------ Day 2 -- Star 1 ------
         private static void Day2_Star1()
         {
             //var textFile = @"C:\aoc\2023\day2\test.txt";
@@ -143,7 +97,6 @@ namespace advent2023
             Console.WriteLine("2*1 -- Total Sum: " + totalSum);
         }
 
-        // ------ Day 2 -- Star 2 ------
         private static void Day2_Star2()
         {
             //var textFile = @"C:\aoc\2023\day2\test.txt";
@@ -176,6 +129,54 @@ namespace advent2023
                 totalSum += (ballMax["red"] * ballMax["green"] * ballMax["blue"]);
             }
             Console.WriteLine("2*2 -- Total Sum: " + totalSum);
+        }
+
+        private static void Day3_Star1()
+        {
+            //var textFile = @"C:\aoc\2023\day3\test.txt";
+            var textFile = @"C:\aoc\2023\day3\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            int lineLength = lines[0].Length;
+            int linesCount = lines.Length;
+            int totalSum = 0;
+            for (int i = 0; i < linesCount; i++)
+            {
+                for (int j = 0; j < lineLength; j++)
+                {
+                    int number = 0;
+                    int numberStart = -1;
+                    int numberEnd = -1;
+                    bool numberFound = false;
+                    bool endFound = false;
+                    char c = lines[i][j];
+                    while (char.IsDigit(c))
+                    {
+                        if (!numberFound)
+                        {
+                            numberFound = true;
+                            numberStart = j;
+                        }
+                        int numberC = c - '0';
+                        number = number * 10 + numberC;
+                        if (j + 1 == lineLength)
+                        {
+                            endFound = true;
+                            break;
+                        }
+                        c = lines[i][++j];
+                    }
+                    if (numberFound)
+                    {
+                        if (endFound)
+                            numberEnd = j;
+                        else
+                            numberEnd = j - 1;
+                        if (Helper.NumberIsGood(i, numberStart, numberEnd, lines))
+                            totalSum += number;
+                    }
+                }
+            }
+            Console.WriteLine("3*1 -- Total Sum: " + totalSum);
         }
 
         private static void ExitConsole()
