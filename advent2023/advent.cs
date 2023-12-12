@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
+using System.Runtime.Remoting.Contexts;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace advent2023
@@ -12,15 +14,17 @@ namespace advent2023
     {
         static void Main(string[] args)
         {
-            Star1();
-            Star2();
+            Day1_Star1();
+            Day1_Star2();
+            Day2_Star1();
+            Day2_Star2();
             ExitConsole();
         }
 
-        // ------ Star 1 ------
-        private static void Star1()
+        // ------ Day 1 -- Star 1 ------
+        private static void Day1_Star1()
         {
-            var textFile = @"C:\aoc\star1\input.txt";
+            var textFile = @"C:\aoc\2023\day1\input.txt";
             string[] lines = File.ReadAllLines(textFile);
             int totalSum = 0;
             foreach (string line in lines)
@@ -30,7 +34,7 @@ namespace advent2023
                 int lineSum = int.Parse(firstDigit.ToString() + secondDigit.ToString());
                 totalSum += lineSum;
             }
-            Console.WriteLine("*1 -- Total Sum: " + totalSum);
+            Console.WriteLine("1*1 -- Total Sum: " + totalSum);
         }
         private static string reverseString(string str)
         {
@@ -47,11 +51,11 @@ namespace advent2023
                 return Convert.ToInt32(firstDigit);
         }
 
-        // ------ Star 2 ------
-        private static void Star2()
+        // ------ Day 1 -- Star 2 ------
+        private static void Day1_Star2()
         {
             //var textFile = @"C:\aoc\star2\test.txt";
-            var textFile = @"C:\aoc\star1\input.txt";
+            var textFile = @"C:\aoc\2023\day1\input.txt";
             string[] lines = File.ReadAllLines(textFile);
             int totalSum = 0;
             foreach (string line in lines)
@@ -63,7 +67,7 @@ namespace advent2023
                 lineSum = int.Parse(firstDigit.ToString() + secondDigit.ToString());
                 totalSum += lineSum;
             }
-            Console.WriteLine("*2 -- Total Sum: " + totalSum);
+            Console.WriteLine("1*2 -- Total Sum: " + totalSum);
         }
 
         private static string replaceWordsToDigits(string str)
@@ -94,6 +98,90 @@ namespace advent2023
                 }
             }
             return word.ToString();
+        }
+
+        // ------ Day 2 -- Star 1 ------
+        private static void Day2_Star1()
+        {
+            //var textFile = @"C:\aoc\2023\day2\test.txt";
+            var textFile = @"C:\aoc\2023\day2\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            int totalSum = 0;
+            int i = 0;
+            var limits = new Dictionary<string, int>
+            {
+                { "red", 12 },
+                { "green", 13 },
+                { "blue", 14 },
+            };
+            foreach (string line in lines)
+            {
+                i++;
+                bool badGame = false;
+                string[] bags = line.Split(':')[1].Split(';');
+                foreach (string bag in bags)
+                {
+                    string[] balls = bag.Split(',');
+                    foreach (string ball in balls)
+                    {
+                        int numOfBalls = Convert.ToInt32(ball.Trim().Split(' ')[0]);
+                        string color = ball.Trim().Split(' ')[1];
+                        if (numOfBalls > limits[color])
+                        {
+                            badGame = true;
+                            break;
+                        }
+                    }
+                    if (badGame)
+                    {
+                        break;
+                    }
+                }
+                if (!badGame)
+                    totalSum += i;
+            }
+            Console.WriteLine("2*1 -- Total Sum: " + totalSum);
+        }
+
+        // ------ Day 2 -- Star 2 ------
+        private static void Day2_Star2()
+        {
+            //var textFile = @"C:\aoc\2023\day2\test.txt";
+            var textFile = @"C:\aoc\2023\day2\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            int totalSum = 0;
+            //int i = 0;
+            var ballMax = new Dictionary<string, int>
+            {
+                { "red", 0 },
+                { "green", 0 },
+                { "blue", 0 },
+            };
+            foreach (string line in lines)
+            {
+                //i++;
+                //bool badGame = false;
+                string[] bags = line.Split(':')[1].Split(';');
+                foreach (string bag in bags)
+                {
+                    string[] balls = bag.Split(',');
+                    foreach (string ball in balls)
+                    {
+                        int numOfBalls = Convert.ToInt32(ball.Trim().Split(' ')[0]);
+                        string color = ball.Trim().Split(' ')[1];
+                        if (numOfBalls > ballMax[color])
+                        {
+                            ballMax[color] = numOfBalls;
+                        }
+                    }
+                }
+                //Console.WriteLine("--"+totalSum);
+                totalSum += (ballMax["red"] * ballMax["green"] * ballMax["blue"] );
+                ballMax["red"] = 0;
+                ballMax["green"] = 0;
+                ballMax["blue"] = 0;
+            }
+            Console.WriteLine("2*2 -- Total Sum: " + totalSum);
         }
 
         private static void ExitConsole()
