@@ -150,7 +150,6 @@ namespace advent2023
             var textFile = @"C:\aoc\2023\day2\input.txt";
             string[] lines = File.ReadAllLines(textFile);
             int totalSum = 0;
-            //int i = 0;
             var ballMax = new Dictionary<string, int>
             {
                 { "red", 0 },
@@ -159,8 +158,6 @@ namespace advent2023
             };
             foreach (string line in lines)
             {
-                //i++;
-                //bool badGame = false;
                 string[] bags = line.Split(':')[1].Split(';');
                 foreach (string bag in bags)
                 {
@@ -175,7 +172,6 @@ namespace advent2023
                         }
                     }
                 }
-                //Console.WriteLine("--"+totalSum);
                 totalSum += (ballMax["red"] * ballMax["green"] * ballMax["blue"] );
                 ballMax["red"] = 0;
                 ballMax["green"] = 0;
