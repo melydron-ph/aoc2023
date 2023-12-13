@@ -207,7 +207,6 @@ namespace advent2023
             Console.WriteLine("3*2 -- Total Sum: " + totalSum);
         }
 
-
         private static void ExitConsole()
         {
             Console.WriteLine("\n\nPress any key to close console.");
