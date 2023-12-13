@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -107,6 +108,101 @@ namespace advent2023
             if (c != '.')
                 return true;
             return false;
+        }
+
+        internal static List<int> FindGearNumbers(int i, int j, string[] lines)
+        {
+
+            List<int> adjacentNumbers = new List<int>();
+
+            int lineLength = lines[0].Length;
+            int linesCount = lines.Length;
+            if (i > 0)
+            {
+                AddAdjacentNumbersAboveOrBelow(adjacentNumbers, j, lines[i - 1]);
+            }
+            if (adjacentNumbers.Count() < 3 && j > 0)
+            {
+                AddAdjacentNumbersLeft(adjacentNumbers, j, lines[i]);
+            }
+            if (adjacentNumbers.Count() < 3 && j < lineLength - 1)
+            {
+                AddAdjacentNumbersRight(adjacentNumbers, j, lines[i]);
+            }
+            if (adjacentNumbers.Count() < 3 && i < linesCount - 1)
+            {
+                AddAdjacentNumbersAboveOrBelow(adjacentNumbers, j, lines[i + 1]);
+            }
+            return adjacentNumbers;
+        }
+
+        private static void AddAdjacentNumbersAboveOrBelow(List<int> numbers, int index, string line)
+        {
+            int start = index;
+            int stop = index;
+            if (index > 0)
+                start--;
+            if (index < line.Length - 1)
+                stop++;
+            for (int i = start; i <= stop; i++)
+            {
+                char c = line[i];
+                if (char.IsDigit(c))
+                {
+                    numbers.Add(ScanNumber(ref i, line));
+                }
+
+            }
+        }
+
+        private static int ScanNumber(ref int i, string line)
+        {
+            int start = i;
+            char c = line[i];
+            bool leftHit = false;
+            while (char.IsDigit(c))
+            {
+                if (start - 1 < 0)
+                {
+                    leftHit = true;
+                    break;
+                }
+                c = line[--start];
+
+            }
+            int number = 0;
+            i = start;
+            if (!leftHit)
+            {
+                i++;
+                c= line[i];
+            }
+            while (char.IsDigit(c))
+            {
+                int numberC = c - '0';
+                number = number * 10 + numberC;
+                if (i + 1 == line.Length)
+                {
+                    break;
+                }
+                c = line[++i];
+            }
+            return number;
+        }
+
+        private static void AddAdjacentNumbersLeft(List<int> numbers, int index, string line)
+        {
+            index--;
+            char c = line[index];
+            if (char.IsDigit(c))
+                numbers.Add(ScanNumber(ref index, line));
+        }
+        private static void AddAdjacentNumbersRight(List<int> numbers, int index, string line)
+        {
+            index++;
+            char c = line[index];
+            if (char.IsDigit(c))
+                numbers.Add(ScanNumber(ref index, line));
         }
     }
 }

@@ -19,6 +19,7 @@ namespace advent2023
             Day2_Star1();
             Day2_Star2();
             Day3_Star1();
+            Day3_Star2();
             ExitConsole();
         }
 
@@ -99,8 +100,8 @@ namespace advent2023
 
         private static void Day2_Star2()
         {
-            //var textFile = @"C:\aoc\2023\day2\test.txt";
-            var textFile = @"C:\aoc\2023\day2\input.txt";
+            var textFile = @"C:\aoc\2023\day2\test.txt";
+            //var textFile = @"C:\aoc\2023\day2\input.txt";
             string[] lines = File.ReadAllLines(textFile);
             int totalSum = 0;
 
@@ -177,6 +178,33 @@ namespace advent2023
                 }
             }
             Console.WriteLine("3*1 -- Total Sum: " + totalSum);
+        }
+
+        private static void Day3_Star2()
+        {
+            //var textFile = @"C:\aoc\2023\day3\test.txt";
+            var textFile = @"C:\aoc\2023\day3\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            int lineLength = lines[0].Length;
+            int linesCount = lines.Length;
+            int totalSum = 0;
+            for (int i = 0; i < linesCount; i++)
+            {
+                for (int j = 0; j < lineLength; j++)
+                {
+
+                    char c = lines[i][j];
+                    if (c == '*')
+                    {
+                        List<int> gearNumbers = Helper.FindGearNumbers(i, j, lines);
+                        if (gearNumbers.Count == 2)
+                        {
+                            totalSum += gearNumbers[0] * gearNumbers[1];
+                        }
+                    }
+                }
+            }
+            Console.WriteLine("3*2 -- Total Sum: " + totalSum);
         }
 
         private static void ExitConsole()
