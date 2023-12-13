@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.SqlServer.Server;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -15,14 +16,15 @@ namespace advent2023
     {
         static void Main(string[] args)
         {
-            Day1_Star1();
-            Day1_Star2();
-            Day2_Star1();
-            Day2_Star2();
-            Day3_Star1();
-            Day3_Star2();
-            Day4_Star1();
-            Day4_Star2();
+            //Day1_Star1();
+            //Day1_Star2();
+            //Day2_Star1();
+            //Day2_Star2();
+            //Day3_Star1();
+            //Day3_Star2();
+            //Day4_Star1();
+            //Day4_Star2();
+            Day5_Star1();
             ExitConsole();
         }
 
@@ -285,6 +287,27 @@ namespace advent2023
                 totalCards += number;
             }
             Console.WriteLine("4*2 -- " + totalCards);
+        }
+
+        private static void Day5_Star1()
+        {
+            var textFile = @"C:\aoc\2023\day5\test.txt";
+            //var textFile = @"C:\aoc\2023\day5\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            // Parse first line to get seeds
+            int[] seeds = Array.ConvertAll(lines[0].Split(':')[1].Trim().Split(' ').ToArray(), int.Parse);
+            foreach (string line in lines.Skip(1))
+            {
+
+            }
+
+            // Find first map
+            // Get first transformation rule range
+            // For each seed
+            //      if in range
+            //          update seed    
+
+            Console.WriteLine("5*1 -- ");
         }
 
         private static void ExitConsole()
