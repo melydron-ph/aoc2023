@@ -204,5 +204,16 @@ namespace advent2023
             if (char.IsDigit(c))
                 numbers.Add(ScanNumber(ref index, line));
         }
+
+        internal static void UpdateExtraIterations(ref int[] extraIterations, int cardNumber, int nextCardsWon)
+        {
+            for (int i = cardNumber + 1; i <= cardNumber + nextCardsWon; i++)
+            {
+                if (i < extraIterations.Length)
+                {
+                    extraIterations[i]++;
+                }
+            }
+        }
     }
 }

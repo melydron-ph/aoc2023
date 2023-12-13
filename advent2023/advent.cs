@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
@@ -20,6 +21,8 @@ namespace advent2023
             Day2_Star2();
             Day3_Star1();
             Day3_Star2();
+            Day4_Star1();
+            Day4_Star2();
             ExitConsole();
         }
 
@@ -35,7 +38,7 @@ namespace advent2023
                 int lineSum = int.Parse(firstDigit.ToString() + secondDigit.ToString());
                 totalSum += lineSum;
             }
-            Console.WriteLine("1*1 -- Total Sum: " + totalSum);
+            Console.WriteLine("1*1 -- " + totalSum);
         }
 
         private static void Day1_Star2()
@@ -53,7 +56,7 @@ namespace advent2023
                 lineSum = int.Parse(firstDigit.ToString() + secondDigit.ToString());
                 totalSum += lineSum;
             }
-            Console.WriteLine("1*2 -- Total Sum: " + totalSum);
+            Console.WriteLine("1*2 -- " + totalSum);
         }
 
         private static void Day2_Star1()
@@ -95,7 +98,7 @@ namespace advent2023
                 if (!badGame)
                     totalSum += i;
             }
-            Console.WriteLine("2*1 -- Total Sum: " + totalSum);
+            Console.WriteLine("2*1 -- " + totalSum);
         }
 
         private static void Day2_Star2()
@@ -129,7 +132,7 @@ namespace advent2023
                 }
                 totalSum += (ballMax["red"] * ballMax["green"] * ballMax["blue"]);
             }
-            Console.WriteLine("2*2 -- Total Sum: " + totalSum);
+            Console.WriteLine("2*2 -- " + totalSum);
         }
 
         private static void Day3_Star1()
@@ -177,7 +180,7 @@ namespace advent2023
                     }
                 }
             }
-            Console.WriteLine("3*1 -- Total Sum: " + totalSum);
+            Console.WriteLine("3*1 -- " + totalSum);
         }
 
         private static void Day3_Star2()
@@ -204,7 +207,84 @@ namespace advent2023
                     }
                 }
             }
-            Console.WriteLine("3*2 -- Total Sum: " + totalSum);
+            Console.WriteLine("3*2 -- " + totalSum);
+        }
+
+        private static void Day4_Star1()
+        {
+            //var textFile = @"C:\aoc\2023\day4\test.txt";
+            var textFile = @"C:\aoc\2023\day4\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            double totalSum = 0;
+            int i = 0;
+            foreach (string line in lines)
+            {
+
+                string[] numbers = line.Split(':')[1].Split('|');
+                string winningGroup = string.Join(" ", numbers[0].Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+                string candidateGroup = string.Join(" ", numbers[1].Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+                int[] winningNumbers = Array.ConvertAll(winningGroup.Split(' ').ToArray(), int.Parse);
+                int[] candidateNumbers = Array.ConvertAll(candidateGroup.Split(' ').ToArray(), int.Parse);
+                int total = -1;
+                foreach (int number in candidateNumbers)
+                {
+                    if (winningNumbers.Contains(number))
+                    {
+                        total++;
+                    }
+                }
+                if (total >= 0)
+                {
+                    totalSum += Math.Pow(2, total);
+                }
+
+            }
+            Console.WriteLine("4*1 -- " + totalSum);
+        }
+
+        private static void Day4_Star2()
+        {
+            //var textFile = @"C:\aoc\2023\day4\test.txt";
+            var textFile = @"C:\aoc\2023\day4\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            int totalCards = 0;
+            int cardNumber = 0;
+            int[] extraIterations = new int[lines.Length];
+            foreach (string line in lines)
+            {
+                totalCards++;
+
+                string[] numbers = line.Split(':')[1].Split('|');
+                string winningGroup = string.Join(" ", numbers[0].Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+                string candidateGroup = string.Join(" ", numbers[1].Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+                int[] winningNumbers = Array.ConvertAll(winningGroup.Split(' ').ToArray(), int.Parse);
+                int[] candidateNumbers = Array.ConvertAll(candidateGroup.Split(' ').ToArray(), int.Parse);
+                int nextCardsWon = 0;
+                foreach (int number in candidateNumbers)
+                {
+                    if (winningNumbers.Contains(number))
+                    {
+                        nextCardsWon++;
+                    }
+                }
+                for (int i = 0; i <= extraIterations[cardNumber]; i++)
+                {
+                    for (int j = cardNumber + 1; j <= cardNumber + nextCardsWon; j++)
+                    {
+                        if (j < extraIterations.Length)
+                        {
+                            extraIterations[j]++;
+                        }
+                    }
+                }
+                cardNumber++;
+
+            }
+            foreach (int number in extraIterations)
+            {
+                totalCards += number;
+            }
+            Console.WriteLine("4*2 -- " + totalCards);
         }
 
         private static void ExitConsole()
