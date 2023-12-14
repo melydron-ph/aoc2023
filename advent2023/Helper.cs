@@ -215,7 +215,5 @@ namespace advent2023
                 }
             }
         }
-
-        Dictionary<>
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
@@ -25,6 +26,7 @@ namespace advent2023
             //Day4_Star1();
             //Day4_Star2();
             Day5_Star1();
+            Day5_Star2();
             ExitConsole();
         }
 
@@ -291,25 +293,93 @@ namespace advent2023
 
         private static void Day5_Star1()
         {
-            var textFile = @"C:\aoc\2023\day5\test.txt";
-            //var textFile = @"C:\aoc\2023\day5\input.txt";
-            string[] lines = File.ReadAllLines(textFile);
-            // Parse first line to get seeds
-            int[] seeds = Array.ConvertAll(lines[0].Split(':')[1].Trim().Split(' ').ToArray(), int.Parse);
-            foreach (string line in lines.Skip(1))
+            //var textFile = @"C:\aoc\2023\day5\test.txt";
+            var textFile = @"C:\aoc\2023\day5\input.txt";
+            string file = File.ReadAllText(textFile);
+            string[] fileBlocks = file.Split(new string[] { "\r\n\r\n", "\n\n" }, StringSplitOptions.None);
+            long[] seeds = Array.ConvertAll(fileBlocks[0].Split(':')[1].Trim().Split(' ').ToArray(), long.Parse);
+            foreach (string fileBlock in fileBlocks.Skip(1))
             {
-
+                string[] lines = fileBlock.Split('\n');
+                for (int i = 0; i < seeds.Length; i++)
+                {
+                    foreach (string line in lines.Skip(1))
+                    {
+                        if (line.Length > 0)
+                        {
+                            long[] transformRule = Array.ConvertAll(line.Split(' ').ToArray(), long.Parse);
+                            long dest = transformRule[0];
+                            long source = transformRule[1];
+                            long range = transformRule[2];
+                            if (seeds[i] >= source && seeds[i] < source + range)
+                            {
+                                long diff = seeds[i] - source;
+                                seeds[i] = dest + diff;
+                                break;
+                            }
+                        }
+                    }
+                }
             }
-
-            // Find first map
-            // Get first transformation rule range
-            // For each seed
-            //      if in range
-            //          update seed    
-
-            Console.WriteLine("5*1 -- ");
+            Array.Sort(seeds);
+            Console.WriteLine("5*1 -- Lowest number: " + seeds[0]);
         }
 
+        private static void Day5_Star2()
+        {
+            //var textFile = @"C:\aoc\2023\day5\test.txt";
+            var textFile = @"C:\aoc\2023\day5\input.txt";
+            string file = File.ReadAllText(textFile);
+            string[] fileBlocks = file.Split(new string[] { "\r\n\r\n", "\n\n" }, StringSplitOptions.None);
+            long[] oldSeeds = Array.ConvertAll(fileBlocks[0].Split(':')[1].Trim().Split(' ').ToArray(), long.Parse);
+            List<Tuple<long, long>> seedPairs = new List<Tuple<long, long>>();
+            for (int i = 0; i < oldSeeds.Length - 1; i+=2)
+            {
+                seedPairs.Add(new Tuple<long, long>(oldSeeds[i], oldSeeds[i+1]));
+            }
+            long minLoc = long.MaxValue;
+            bool numberFound = false;
+            for (long i = 0; i < long.MaxValue; i++)
+            {
+                long num = i;
+                for (int j = fileBlocks.Count() - 1; j > 0; j--)
+                {
+                    string[] lines = fileBlocks[j].Split('\n');
+                    foreach (string line in lines.Skip(1))
+                    {
+
+                        if (line.Length > 0)
+                        {
+                            long[] transformRule = Array.ConvertAll(line.Split(' ').ToArray(), long.Parse);
+                            long dest = transformRule[1];
+                            long source = transformRule[0];
+                            long range = transformRule[2];
+                            if (num >= source && num < source + range)
+                            {
+
+                                long diff = num - source;
+                                num = dest + diff;
+                                break;
+                            }
+                        }
+                    }
+
+                }
+                foreach (Tuple<long, long> pair in seedPairs)
+                {
+                    if (num >= pair.Item1 && num <= pair.Item1 + pair.Item2)
+                    {
+                        minLoc = i;
+                        numberFound = true;
+                        break;
+                    }
+                }
+                if (numberFound)
+                    break;
+            }
+            Console.WriteLine("5*2 -- Lowest number: " + minLoc);
+
+        }
         private static void ExitConsole()
         {
             Console.WriteLine("\n\nPress any key to close console.");
