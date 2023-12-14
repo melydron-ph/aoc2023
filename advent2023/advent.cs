@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -322,7 +323,7 @@ namespace advent2023
                 }
             }
             Array.Sort(seeds);
-            Console.WriteLine("5*1 -- Lowest number: " + seeds[0]);
+            Console.WriteLine("5*1 -- " + seeds[0]);
         }
 
         private static void Day5_Star2()
@@ -333,51 +334,64 @@ namespace advent2023
             string[] fileBlocks = file.Split(new string[] { "\r\n\r\n", "\n\n" }, StringSplitOptions.None);
             long[] oldSeeds = Array.ConvertAll(fileBlocks[0].Split(':')[1].Trim().Split(' ').ToArray(), long.Parse);
             List<Tuple<long, long>> seedPairs = new List<Tuple<long, long>>();
-            for (int i = 0; i < oldSeeds.Length - 1; i+=2)
+            for (int i = 0; i < oldSeeds.Length - 1; i += 2)
             {
-                seedPairs.Add(new Tuple<long, long>(oldSeeds[i], oldSeeds[i+1]));
+                seedPairs.Add(new Tuple<long, long>(oldSeeds[i], oldSeeds[i + 1]));
             }
+
+            List<List<(long source, long dest, long range)>> transformRulesList = new List<List<(long, long, long)>>();
+            for (int i = 1; i < fileBlocks.Count(); i++)
+            {
+                string[] lines = fileBlocks[i].Split('\n');
+                List<(long source, long dest, long range)> mapRules = new List<(long, long, long)>();
+                foreach (string line in lines.Skip(1))
+                {
+                    if (line.Length > 0)
+                    {
+                        long[] transformRule = Array.ConvertAll(line.Split(' ').ToArray(), long.Parse);
+                        (long source, long dest, long range) rule = (transformRule[0], transformRule[1], transformRule[2]);
+                        mapRules.Add(rule);
+                    }
+                }
+                transformRulesList.Add(mapRules);
+            }
+
+            List<(long start, long range)> seedPairsList = seedPairs.Select(p => (p.Item1, p.Item2)).ToList();
+
             long minLoc = long.MaxValue;
             bool numberFound = false;
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             for (long i = 0; i < long.MaxValue; i++)
             {
                 long num = i;
-                for (int j = fileBlocks.Count() - 1; j > 0; j--)
+                for (int j = transformRulesList.Count - 1; j >= 0; j--)
                 {
-                    string[] lines = fileBlocks[j].Split('\n');
-                    foreach (string line in lines.Skip(1))
+                    foreach (var (source, dest, range) in transformRulesList[j])
                     {
-
-                        if (line.Length > 0)
+                        if (num >= source && num < source + range)
                         {
-                            long[] transformRule = Array.ConvertAll(line.Split(' ').ToArray(), long.Parse);
-                            long dest = transformRule[1];
-                            long source = transformRule[0];
-                            long range = transformRule[2];
-                            if (num >= source && num < source + range)
-                            {
-
-                                long diff = num - source;
-                                num = dest + diff;
-                                break;
-                            }
+                            num = dest + (num - source);
+                            break;
                         }
                     }
-
                 }
-                foreach (Tuple<long, long> pair in seedPairs)
+
+                foreach (var (start, range) in seedPairsList)
                 {
-                    if (num >= pair.Item1 && num <= pair.Item1 + pair.Item2)
+                    if (num >= start && num <= start + range)
                     {
                         minLoc = i;
                         numberFound = true;
                         break;
                     }
                 }
+
                 if (numberFound)
                     break;
             }
-            Console.WriteLine("5*2 -- Lowest number: " + minLoc);
+            stopwatch.Stop();
+            Console.WriteLine("5*2 -- " + minLoc + " (Time elapsed: " + stopwatch.Elapsed.TotalSeconds.ToString(".0#") + " secs)");
 
         }
         private static void ExitConsole()
