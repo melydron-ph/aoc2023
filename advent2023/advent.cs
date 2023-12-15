@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Runtime.Remoting.Contexts;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -26,8 +27,10 @@ namespace advent2023
             //Day3_Star2();
             //Day4_Star1();
             //Day4_Star2();
-            Day5_Star1();
-            Day5_Star2();
+            //Day5_Star1();
+            //Day5_Star2();
+            //Day6_Star1();
+            //Day6_Star2();
             ExitConsole();
         }
 
@@ -294,6 +297,7 @@ namespace advent2023
 
         private static void Day5_Star1()
         {
+
             //var textFile = @"C:\aoc\2023\day5\test.txt";
             var textFile = @"C:\aoc\2023\day5\input.txt";
             string file = File.ReadAllText(textFile);
@@ -394,6 +398,74 @@ namespace advent2023
             Console.WriteLine("5*2 -- " + minLoc + " (Time elapsed: " + stopwatch.Elapsed.TotalSeconds.ToString(".0#") + " secs)");
 
         }
+
+        private static void Day6_Star1()
+        {
+            //var textFile = @"C:\aoc\2023\day6\test.txt";
+            var textFile = @"C:\aoc\2023\day6\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            string timeLine = string.Join(" ", lines[0].Split(':')[1].Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+            string distanceLine = string.Join(" ", lines[1].Split(':')[1].Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+            int[] time = Array.ConvertAll(timeLine.Split(' ').ToArray(), int.Parse);
+            int[] distance = Array.ConvertAll(distanceLine.Split(' ').ToArray(), int.Parse);
+            int total = 1;
+            for (int i = 0; i < time.Length; i++) // for each race duration
+            {
+                int waysToWin = 0;
+                for (int j = 0; j < time[i]; j++)
+                {
+                    int speed = j;
+                    int duration = time[i] - speed;
+                    int d = duration * speed;
+                    if (d > distance[i])
+                    {
+                        waysToWin++;
+                    }
+                }
+                total = total * waysToWin;
+            }
+            Console.WriteLine("6*1 -- " + total);
+        }
+
+        private static void Day6_Star2()
+        {
+            //var textFile = @"C:\aoc\2023\day6\test.txt";
+            var textFile = @"C:\aoc\2023\day6\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            string timeLine = string.Join(" ", lines[0].Split(':')[1].Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+            string distanceLine = string.Join(" ", lines[1].Split(':')[1].Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+            int[] time = Array.ConvertAll(timeLine.Split(' ').ToArray(), int.Parse);
+            int[] distance = Array.ConvertAll(distanceLine.Split(' ').ToArray(), int.Parse);
+            string timeNumbers = string.Empty;
+            foreach (int t in time)
+            {
+                timeNumbers += t.ToString();
+            }
+            long raceTime = long.Parse(timeNumbers);
+
+            string distanceNumbers = string.Empty;
+            foreach (int d in distance)
+            {
+                distanceNumbers += d.ToString();
+            }
+            long raceDistance = long.Parse(distanceNumbers);
+
+            int waysToWin = 0;
+
+            for (int j = 0; j < raceTime; j++)
+            {
+                int speed = j;
+                long duration = raceTime - speed;
+                long d = duration * speed;
+                if (d > raceDistance)
+                {
+                    waysToWin++;
+                }
+            }
+            Console.WriteLine("6*2 -- " + waysToWin);
+
+        }
+
         private static void ExitConsole()
         {
             Console.WriteLine("\n\nPress any key to close console.");
