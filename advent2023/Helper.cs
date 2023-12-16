@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -175,7 +176,7 @@ namespace advent2023
             if (!leftHit)
             {
                 i++;
-                c= line[i];
+                c = line[i];
             }
             while (char.IsDigit(c))
             {
@@ -214,6 +215,166 @@ namespace advent2023
                     extraIterations[i]++;
                 }
             }
+        }
+
+        internal static int FindHandType(string hand)
+        {
+            Dictionary<char, int> occurences = new Dictionary<char, int>()
+            {
+                { 'A', 0 },
+                { 'K', 0 },
+                { 'Q', 0 },
+                { 'J', 0 },
+                { 'T', 0 },
+                { '1', 0 },
+                { '2', 0 },
+                { '3', 0 },
+                { '4', 0 },
+                { '5', 0 },
+                { '6', 0 },
+                { '7', 0 },
+                { '8', 0 },
+                { '9', 0 },
+            };
+            int max1 = 0;
+            int max2 = 0;
+            foreach (char c in hand)
+            {
+                occurences[c]++;
+
+            }
+            foreach (int value in occurences.Values)
+            {
+                if (value > max1)
+                {
+                    max2 = max1;
+                    max1 = value;
+                }
+                else if (value <= max1 && value > max2)
+                {
+                    max2 = value;
+                }
+            }
+            return int.Parse(max1.ToString() + max2.ToString());
+
+        }
+
+        internal static int SolveDraw(string hand1, string hand2)
+        {
+            Dictionary<char, int> cardPwer = new Dictionary<char, int>()
+            {
+                { 'A', 14 },
+                { 'K', 13 },
+                { 'Q', 12 },
+                { 'J', 11 },
+                { 'T', 10 },
+                { '1', 1 },
+                { '2', 2 },
+                { '3', 3 },
+                { '4', 4 },
+                { '5', 5 },
+                { '6', 6 },
+                { '7', 7 },
+                { '8', 8 },
+                { '9', 9 },
+            };
+            for (int i = 0; i < hand1.Length; i++)
+            {
+                int handPower1 = cardPwer[hand1[i]];
+                int handPower2 = cardPwer[hand2[i]];
+                if (handPower1 > handPower2)
+                {
+                    return -1;
+                }
+                else if (handPower1 < handPower2)
+                {
+                    return 1;
+                }
+            }
+            return 0;
+        }
+
+        internal static int FindHandType2(string hand)
+        {
+            Dictionary<char, int> occurences = new Dictionary<char, int>()
+            {
+                { 'A', 0 },
+                { 'K', 0 },
+                { 'Q', 0 },
+                { 'J', 0 },
+                { 'T', 0 },
+                { '1', 0 },
+                { '2', 0 },
+                { '3', 0 },
+                { '4', 0 },
+                { '5', 0 },
+                { '6', 0 },
+                { '7', 0 },
+                { '8', 0 },
+                { '9', 0 },
+            };
+            int max1 = 0;
+            int max2 = 0;
+            foreach (char c in hand)
+            {
+                occurences[c]++;
+            }
+            foreach (var oc in occurences)
+            {
+                if (oc.Key != 'J')
+                {
+                    if (oc.Value > max1)
+                    {
+                        max2 = max1;
+                        max1 = oc.Value;
+                    }
+                    else if (oc.Value <= max1 && oc.Value > max2)
+                    {
+                        max2 = oc.Value;
+                    }
+                }
+            }
+            if (occurences['J'] > 0)
+            {
+                max1 += occurences['J'];
+            }
+            return int.Parse(max1.ToString() + max2.ToString());
+
+        }
+
+        internal static int SolveDraw2(string hand1, string hand2)
+        {
+            Dictionary<char, int> cardPwer = new Dictionary<char, int>()
+            {
+                { 'A', 14 },
+                { 'K', 13 },
+                { 'Q', 12 },
+                { 'J', 0 },
+                { 'T', 10 },
+                { '1', 1 },
+                { '2', 2 },
+                { '3', 3 },
+                { '4', 4 },
+                { '5', 5 },
+                { '6', 6 },
+                { '7', 7 },
+                { '8', 8 },
+                { '9', 9 },
+            };
+            for (int i = 0; i < hand1.Length; i++)
+            {
+                int handPower1 = cardPwer[hand1[i]];
+                int handPower2 = cardPwer[hand2[i]];
+                if (handPower1 > handPower2)
+                {
+                    return -1;
+                }
+                else if (handPower1 < handPower2)
+                {
+                    return 1;
+                }
+            }
+            return 0;
         }
     }
 }

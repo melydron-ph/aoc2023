@@ -31,6 +31,8 @@ namespace advent2023
             //Day5_Star2();
             //Day6_Star1();
             //Day6_Star2();
+            Day7_Star1();
+            Day7_Star2();
             ExitConsole();
         }
 
@@ -464,6 +466,77 @@ namespace advent2023
             }
             Console.WriteLine("6*2 -- " + waysToWin);
 
+        }
+
+        private static void Day7_Star1()
+        {
+            //var textFile = @"C:\aoc\2023\day7\test.txt";
+            var textFile = @"C:\aoc\2023\day7\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            List<(string hand, int bid)> handsAndBids = new List<(string, int)>();
+            foreach (string line in lines)
+            {
+                string[] lineParts = line.Split(' ');
+                string hand = lineParts[0].Trim();
+                string bid = lineParts[1].Trim();
+                (string hand, int bid) handAndBid = (lineParts[0].Trim(), int.Parse(lineParts[1]));
+                handsAndBids.Add(handAndBid);
+            }
+            handsAndBids.Sort(delegate ((string hand, int bid) h1, (string hand, int bid) h2)
+            {
+                int type1 = Helper.FindHandType(h1.hand);
+                int type2 = Helper.FindHandType(h2.hand);
+                int compareTo = type2.CompareTo(type1);
+                if (compareTo == 0)
+                {
+                    compareTo = Helper.SolveDraw(h1.hand, h2.hand);
+
+                }
+                return compareTo;
+            });
+
+            int j = handsAndBids.Count();
+            int totalWinnings = 0;
+            for (int i=0; i<handsAndBids.Count(); i++)
+            {
+                totalWinnings += j-- * handsAndBids[i].bid;
+            }
+            Console.WriteLine("7*1 -- " + totalWinnings);
+        }
+
+        private static void Day7_Star2()
+        {
+            //var textFile = @"C:\aoc\2023\day7\test.txt";
+            var textFile = @"C:\aoc\2023\day7\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            List<(string hand, int bid)> handsAndBids = new List<(string, int)>();
+            foreach (string line in lines)
+            {
+                string[] lineParts = line.Split(' ');
+                string hand = lineParts[0].Trim();
+                string bid = lineParts[1].Trim();
+                (string hand, int bid) handAndBid = (lineParts[0].Trim(), int.Parse(lineParts[1]));
+                handsAndBids.Add(handAndBid);
+            }
+            handsAndBids.Sort(delegate ((string hand, int bid) h1, (string hand, int bid) h2)
+            {
+                int type1 = Helper.FindHandType2(h1.hand);
+                int type2 = Helper.FindHandType2(h2.hand);
+                int compareTo = type2.CompareTo(type1);
+                if (compareTo == 0)
+                {
+                    compareTo = Helper.SolveDraw2(h1.hand, h2.hand);
+                }
+                return compareTo;
+            });
+
+            int j = handsAndBids.Count();
+            int totalWinnings = 0;
+            for (int i = 0; i < handsAndBids.Count(); i++)
+            {
+                totalWinnings += j-- * handsAndBids[i].bid;
+            }
+            Console.WriteLine("7*2 -- " + totalWinnings);
         }
 
         private static void ExitConsole()
