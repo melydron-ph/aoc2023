@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Schema;
 
 namespace advent2023
 {
@@ -404,6 +405,74 @@ namespace advent2023
                 a = temp;
             }
             return a;
+        }
+
+        internal static int FindSequenceNextValue(int[] numbers)
+        {
+            List<int[]> sequences = new List<int[]>
+            {
+                numbers
+            };
+            int[] nextSequence = FindNextSequence(numbers);
+            sequences.Add(nextSequence);
+            while (!allNumsZero(nextSequence))
+            {
+                int [] newSequence = FindNextSequence(nextSequence);
+                sequences.Add(newSequence);
+                nextSequence = newSequence;
+            }
+            int b = 0;
+            int a = 0;
+            for (int i = sequences.Count() - 1; i >= 0; i--)
+            {
+                int[] sequence = sequences[i];
+                a = sequence[sequence.Length - 1] + b;
+                b = a;
+            }
+            return a;
+        }
+
+        internal static int FindSequencePrevValue(int[] numbers)
+        {
+            List<int[]> sequences = new List<int[]>
+            {
+                numbers
+            };
+            int[] nextSequence = FindNextSequence(numbers);
+            sequences.Add(nextSequence);
+            while (!allNumsZero(nextSequence))
+            {
+                int[] newSequence = FindNextSequence(nextSequence);
+                sequences.Add(newSequence);
+                nextSequence = newSequence;
+            }
+            int b = 0;
+            int a = 0;
+            for (int i = sequences.Count() - 1; i >= 0; i--)
+            {
+                int[] sequence = sequences[i];
+                a = sequence[0] - b;
+                b = a;
+            }
+            return a;
+        }
+
+        private static int[] FindNextSequence(int[] numbers)
+        {
+            int[] sequence = new int[numbers.Length - 1];
+            for (int i = 0; i < sequence.Length; i++)
+            {
+                sequence[i] = numbers[i + 1] - numbers[i];
+            }
+            return sequence;
+        }
+
+        private static bool allNumsZero(int[] numbers)
+        {
+            foreach (int num in numbers)
+                if (num != 0)
+                    return false;
+            return true;
         }
     }
 }

@@ -34,7 +34,9 @@ namespace advent2023
             //Day7_Star1();
             //Day7_Star2();
             //Day8_Star1();
-            Day8_Star2();
+            //Day8_Star2();
+            //Day9_Star1();
+            Day9_Star2();
             ExitConsole();
         }
 
@@ -641,6 +643,35 @@ namespace advent2023
             Console.WriteLine("8*2 -- " + Helper.LCMOfList(nodeSteps));
         }
 
+        private static void Day9_Star1()
+        {
+            //var textFile = @"C:\aoc\2023\day9\test.txt";
+            var textFile = @"C:\aoc\2023\day9\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            int total = 0;
+            foreach (string line in lines)
+            {
+                int[] numbers = Array.ConvertAll(line.Split(' ').ToArray(), int.Parse);
+                int nextValue = Helper.FindSequenceNextValue(numbers);
+                total += nextValue;
+            }
+            Console.WriteLine("9*1 -- " + total);
+        }
+
+        private static void Day9_Star2()
+        {
+            //var textFile = @"C:\aoc\2023\day9\test.txt";
+            var textFile = @"C:\aoc\2023\day9\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            int total = 0;
+            foreach (string line in lines)
+            {
+                int[] numbers = Array.ConvertAll(line.Split(' ').ToArray(), int.Parse);
+                int nextValue = Helper.FindSequencePrevValue(numbers);
+                total += nextValue;
+            }
+            Console.WriteLine("9*2 -- " + total);
+        }
         private static void ExitConsole()
         {
             Console.WriteLine("\n\nPress any key to close console.");
