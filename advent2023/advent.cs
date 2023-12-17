@@ -31,8 +31,10 @@ namespace advent2023
             //Day5_Star2();
             //Day6_Star1();
             //Day6_Star2();
-            Day7_Star1();
-            Day7_Star2();
+            //Day7_Star1();
+            //Day7_Star2();
+            //Day8_Star1();
+            Day8_Star2();
             ExitConsole();
         }
 
@@ -497,7 +499,7 @@ namespace advent2023
 
             int j = handsAndBids.Count();
             int totalWinnings = 0;
-            for (int i=0; i<handsAndBids.Count(); i++)
+            for (int i = 0; i < handsAndBids.Count(); i++)
             {
                 totalWinnings += j-- * handsAndBids[i].bid;
             }
@@ -537,6 +539,106 @@ namespace advent2023
                 totalWinnings += j-- * handsAndBids[i].bid;
             }
             Console.WriteLine("7*2 -- " + totalWinnings);
+        }
+
+        private static void Day8_Star1()
+        {
+            //var textFile = @"C:\aoc\2023\day8\test1.txt";
+            //var textFile = @"C:\aoc\2023\day8\test2.txt";
+            var textFile = @"C:\aoc\2023\day8\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            string steps = lines[0];
+            Dictionary<string, Tuple<string, string>> nodes = new Dictionary<string, Tuple<string, string>>();
+            foreach (string line in lines.Skip(2))
+            {
+                string[] lineParts = line.Split('=');
+                string nodeName = lineParts[0].Trim();
+                string[] values = lineParts[1].Trim().Trim('(', ')').Split(',');
+                string nodeLeft = values[0].Trim();
+                string nodeRight = values[1].Trim();
+                Tuple<string, string> nodesToGo = new Tuple<string, string>(nodeLeft, nodeRight);
+                nodes.Add(nodeName, nodesToGo);
+            }
+            string currentNode = "AAA";
+            int currentStep = 0;
+            int totalSteps = 0;
+            while (currentNode != "ZZZ")
+            {
+                if (currentStep == steps.Length)
+                {
+                    totalSteps += currentStep;
+                    currentStep = 0;
+                }
+                char direction = steps[currentStep++];
+                if (direction == 'L')
+                {
+                    currentNode = nodes[currentNode].Item1;
+                }
+                else
+                {
+                    currentNode = nodes[currentNode].Item2;
+                }
+            }
+            totalSteps += currentStep;
+            Console.WriteLine("8*1 -- " + totalSteps);
+        }
+
+        private static void Day8_Star2()
+        {
+            //var textFile = @"C:\aoc\2023\day8\test3.txt";
+            var textFile = @"C:\aoc\2023\day8\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            string steps = lines[0];
+            Dictionary<string, Tuple<string, string>> nodes = new Dictionary<string, Tuple<string, string>>();
+            List<string> startingNodes = new List<string>();
+            foreach (string line in lines.Skip(2))
+            {
+                string[] lineParts = line.Split('=');
+                string nodeName = lineParts[0].Trim();
+                if (nodeName[2] == 'A')
+                {
+                    startingNodes.Add(nodeName);
+                }
+                string[] values = lineParts[1].Trim().Trim('(', ')').Split(',');
+                string nodeLeft = values[0].Trim();
+                string nodeRight = values[1].Trim();
+                Tuple<string, string> nodesToGo = new Tuple<string, string>(nodeLeft, nodeRight);
+                nodes.Add(nodeName, nodesToGo);
+            }
+            int currentStep = 0;
+            int totalSteps = 0;
+            List<long> nodeSteps = new List<long>();
+            int nodesFinished = 0;
+            while (nodesFinished < 6)
+            {
+                if (currentStep == steps.Length)
+                {
+                    totalSteps += currentStep;
+                    currentStep = 0;
+                }
+                for (int i = 0; i < startingNodes.Count(); i++)
+                {
+                    string currentNode = startingNodes[i];
+                    char direction = steps[currentStep];
+                    if (direction == 'L')
+                    {
+                        currentNode = nodes[currentNode].Item1;
+                    }
+                    else
+                    {
+                        currentNode = nodes[currentNode].Item2;
+                    }
+                    startingNodes[i] = currentNode;
+                    if (currentNode[2] == 'Z')
+                    {
+                        nodesFinished++;
+                        nodeSteps.Add(totalSteps + currentStep + 1);
+                    }
+                }
+                currentStep++;
+
+            }
+            Console.WriteLine("8*2 -- " + Helper.LCMOfList(nodeSteps));
         }
 
         private static void ExitConsole()

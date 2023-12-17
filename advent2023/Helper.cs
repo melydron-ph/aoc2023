@@ -376,5 +376,34 @@ namespace advent2023
             }
             return 0;
         }
+
+        internal static long LCMOfList(List<long> numbers)
+        {
+            if (numbers.Count == 0) return 0;
+            long lcm = numbers[0];
+
+            for (int i = 1; i < numbers.Count; i++)
+            {
+                lcm = LCM(lcm, numbers[i]);
+            }
+
+            return lcm;
+        }
+
+        internal static long LCM(long a, long b)
+        {
+            return (a * b) / GCD(a, b);
+        }
+
+        internal static long GCD(long a, long b)
+        {
+            while (b != 0)
+            {
+                long temp = b;
+                b = a % b;
+                a = temp;
+            }
+            return a;
+        }
     }
 }
