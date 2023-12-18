@@ -775,7 +775,6 @@ namespace advent2023
                 }
                 if (digStop > 0) { break; }
             }
-
             //Helper.PrintTrench(trenches, trenchLocations, offsetX, offsetY);
 
             for (int i = 0; i < arrayX; i++)

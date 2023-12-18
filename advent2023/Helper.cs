@@ -556,7 +556,7 @@ namespace advent2023
             }
         }
 
-
+        // https://rosettacode.org/wiki/Shoelace_formula_for_polygonal_area#C#
         internal static double CalculateArea(List<PointF> points)
         {
             int n = points.Count;
