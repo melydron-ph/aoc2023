@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -36,7 +37,9 @@ namespace advent2023
             //Day8_Star1();
             //Day8_Star2();
             //Day9_Star1();
-            Day9_Star2();
+            //Day9_Star2();
+            Day18_Star1();
+            Day18_Star2();
             ExitConsole();
         }
 
@@ -672,6 +675,156 @@ namespace advent2023
             }
             Console.WriteLine("9*2 -- " + total);
         }
+
+        private static void Day18_Star1()
+        {
+            //var textFile = @"C:\aoc\2023\day18\test.txt";
+            var textFile = @"C:\aoc\2023\day18\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            int total = 0;
+            Dictionary<Tuple<int, int>, string> trenchLocations = new Dictionary<Tuple<int, int>, string>();
+            int locX = 0, locY = 0, maxX = 0, maxY = 0, minX = 0, minY = 0;
+            foreach (string line in lines)
+            {
+                string[] lineParts = line.Split(' ');
+                char direction = lineParts[0].Trim()[0];
+                int steps = int.Parse(lineParts[1].Trim());
+                string color = lineParts[2].Trim().Trim('(', ')');
+
+                if (direction == 'R')
+                {
+                    for (int i = 0; i < steps; i++)
+                    {
+                        trenchLocations.Add(new Tuple<int, int>(locX, locY), color);
+                        if (++locY > maxY)
+                            maxY = locY;
+                    }
+                }
+                else if (direction == 'D')
+                {
+                    for (int i = 0; i < steps; i++)
+                    {
+                        trenchLocations.Add(new Tuple<int, int>(locX, locY), color);
+                        if (++locX > maxX)
+                            maxX = locX;
+                    }
+                }
+                else if (direction == 'L')
+                {
+                    for (int i = 0; i < steps; i++)
+                    {
+                        trenchLocations.Add(new Tuple<int, int>(locX, locY), color);
+                        if (--locY < minY)
+                            minY = locY;
+                    }
+                }
+                else if (direction == 'U')
+                {
+                    for (int i = 0; i < steps; i++)
+                    {
+                        trenchLocations.Add(new Tuple<int, int>(locX, locY), color);
+                        if (--locX < minX)
+                            minX = locX;
+
+                    }
+                }
+
+            }
+            int arrayX = Math.Abs(minX) + Math.Abs(maxX) + 1;
+            int arrayY = Math.Abs(minY) + Math.Abs(maxY) + 1;
+            int[,] trenches = new int[arrayX, arrayY];
+            int offsetX = Math.Abs(minX);
+            int offsetY = Math.Abs(minY);
+            foreach (var location in trenchLocations)
+            {
+                int x = location.Key.Item1 + offsetX;
+                int y = location.Key.Item2 + offsetY;
+                trenches[x, y] = 1;
+                //Console.WriteLine("Location: " + location + " --- [" + x + "," + y + "]");
+
+            }
+            //Helper.PrintTrench(trenches, trenchLocations, offsetX, offsetY);
+
+
+            int digStop = -1;
+            for (int i = arrayX - 1; i >= 0; i--)
+            {
+                int digStart = -1;
+                for (int j = 0; j < arrayY; j++)
+                {
+                    if (trenches[i, j] == 1 && digStart < 0)
+                    {
+                        digStart = j;
+                        while (j < arrayY && trenches[i, j] == 1)
+                        {
+                            j++;
+                            digStart = j;
+                        }
+                        while (j < arrayY && trenches[i, j] == 0)
+                        {
+                            j++;
+                        }
+                        if (j < arrayY && trenches[i, j] == 1)
+                        {
+                            digStop = j;
+                            Helper.FloodFill(trenches, i, digStop - 1, 1);
+                            break;
+                        }
+
+                    }
+                }
+                if (digStop > 0) { break; }
+            }
+
+            //Helper.PrintTrench(trenches, trenchLocations, offsetX, offsetY);
+
+            for (int i = 0; i < arrayX; i++)
+            {
+                for (int j = 0; j < arrayY; j++)
+                {
+                    if (trenches[i, j] == 1)
+                    {
+                        total++;
+                    }
+                }
+            }
+            Console.WriteLine("18*1 -- " + total);
+        }
+
+        private static void Day18_Star2()
+        {
+            //var textFile = @"C:\aoc\2023\day18\test.txt";
+            var textFile = @"C:\aoc\2023\day18\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            List<PointF> points = new List<PointF>();
+
+            int locX = 0, locY = 0;
+            int totalSteps = 0;
+            foreach (string line in lines)
+            {
+                PointF p = new Point(locX, locY); 
+                points.Add(p);
+                string[] lineParts = line.Split(' ');
+                string hexCode = lineParts[2].Trim().Trim('(', ')').Trim('#');
+                int steps = int.Parse(hexCode.Substring(0, 5), NumberStyles.HexNumber);
+                int direction = int.Parse(hexCode.Substring(5, 1), NumberStyles.HexNumber);
+                if (direction == 0) // R
+                    locY += steps;
+                else if (direction == 1) // D
+                    locX += steps;
+                else if (direction == 2) // L
+                    locY -= steps;
+                else if (direction == 3) // U
+                    locX -= steps;
+                totalSteps += steps;
+            }
+            double polygonArea = Helper.CalculateArea(points);
+
+            double result = polygonArea + totalSteps / 2 + 1;
+
+            Console.WriteLine("18*2 -- " + result);
+        }
+
         private static void ExitConsole()
         {
             Console.WriteLine("\n\nPress any key to close console.");

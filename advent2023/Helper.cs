@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -417,7 +419,7 @@ namespace advent2023
             sequences.Add(nextSequence);
             while (!allNumsZero(nextSequence))
             {
-                int [] newSequence = FindNextSequence(nextSequence);
+                int[] newSequence = FindNextSequence(nextSequence);
                 sequences.Add(newSequence);
                 nextSequence = newSequence;
             }
@@ -474,5 +476,99 @@ namespace advent2023
                     return false;
             return true;
         }
+
+        internal static ConsoleColor ClosestConsoleColor(double r, double g, double b)
+        {
+            ConsoleColor ret = 0;
+            double delta = double.MaxValue;
+
+            foreach (ConsoleColor cc in Enum.GetValues(typeof(ConsoleColor)))
+            {
+                var n = Enum.GetName(typeof(ConsoleColor), cc);
+                var c = System.Drawing.Color.FromName(n == "DarkYellow" ? "Orange" : n); // bug fix
+                var t = Math.Pow(c.R - r, 2.0) + Math.Pow(c.G - g, 2.0) + Math.Pow(c.B - b, 2.0);
+                if (t == 0.0)
+                    return cc;
+                if (t < delta)
+                {
+                    delta = t;
+                    ret = cc;
+                }
+            }
+            return ret;
+        }
+
+        internal static void PrintTrench(int[,] trenches, Dictionary<Tuple<int, int>, string> trenchLocations, int offsetX, int offsetY)
+        {
+            int arrayX = trenches.GetLength(0);
+            int arrayY = trenches.GetLength(1);
+            for (int i = 0; i < arrayX; i++)
+            {
+                for (int j = 0; j < arrayY; j++)
+                {
+                    if (trenches[i, j] == 1)
+                    {
+                        Tuple<int, int> location = new Tuple<int, int>(i - offsetX, j - offsetY);
+                        if (trenchLocations.ContainsKey(location))
+                        {
+                            string consoleColor = trenchLocations[location].Trim('#');
+                            double r = int.Parse(consoleColor.Substring(0, 2), NumberStyles.HexNumber);
+                            double g = int.Parse(consoleColor.Substring(2, 2), NumberStyles.HexNumber);
+                            double b = int.Parse(consoleColor.Substring(4, 2), NumberStyles.HexNumber);
+                            ConsoleColor colour = Helper.ClosestConsoleColor(r, g, b);
+                            Console.ForegroundColor = colour;
+                        }
+                        else
+                        {
+                            Console.ForegroundColor = ConsoleColor.Cyan;
+                        }
+                        Console.Write('#');
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.Write('.');
+                    }
+                }
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write('\n');
+            }
+        }
+
+        internal static void FloodFill(int[,] array, int start_x, int start_y, int fillValue)
+        {
+            Stack<(int x, int y)> stack = new Stack<(int x, int y)>();
+            stack.Push((start_x, start_y));
+
+            while (stack.Count > 0)
+            {
+                var (x, y) = stack.Pop();
+
+                if (x >= 0 && x < array.GetLength(0) && y >= 0 && y < array.GetLength(1) && array[x, y] == 0)
+                {
+                    array[x, y] = fillValue;
+
+                    stack.Push((x + 1, y));
+                    stack.Push((x - 1, y));
+                    stack.Push((x, y + 1));
+                    stack.Push((x, y - 1));
+                }
+            }
+        }
+
+
+        internal static double CalculateArea(List<PointF> points)
+        {
+            int n = points.Count;
+            double result = 0.0;
+            for (int i = 0; i < n - 1; i++)
+            {
+                result += points[i].X * points[i + 1].Y - points[i + 1].X * points[i].Y;
+            }
+
+            result = Math.Abs(result + points[n - 1].X * points[0].Y - points[0].X * points[n - 1].Y) / 2.0;
+            return result;
+        }
+
     }
 }
