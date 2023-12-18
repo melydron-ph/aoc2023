@@ -38,8 +38,9 @@ namespace advent2023
             //Day8_Star2();
             //Day9_Star1();
             //Day9_Star2();
-            Day18_Star1();
-            Day18_Star2();
+            Day10_Star1();
+            //Day18_Star1();
+            //Day18_Star2();
             ExitConsole();
         }
 
@@ -801,7 +802,7 @@ namespace advent2023
             int totalSteps = 0;
             foreach (string line in lines)
             {
-                PointF p = new Point(locX, locY); 
+                PointF p = new Point(locX, locY);
                 points.Add(p);
                 string[] lineParts = line.Split(' ');
                 string hexCode = lineParts[2].Trim().Trim('(', ')').Trim('#');
@@ -822,6 +823,22 @@ namespace advent2023
             double result = polygonArea + totalSteps / 2 + 1;
 
             Console.WriteLine("18*2 -- " + result);
+        }
+
+
+        private static void Day10_Star1()
+        {
+            //var textFile = @"C:\aoc\2023\day10\test.txt";
+            var textFile = @"C:\aoc\2023\day10\input.txt";
+            string file = File.ReadAllText(textFile);
+            file = file.Replace('7', '┐').Replace('|', '│').Replace('L', '└').Replace('F', '┌').Replace('J', '┘').Replace('-', '─');
+            string[] lines = file.Split('\n');
+            foreach (string line in lines)
+            {
+                Console.WriteLine(line);
+            }
+
+            Console.WriteLine("10*1 -- ");
         }
 
         private static void ExitConsole()
