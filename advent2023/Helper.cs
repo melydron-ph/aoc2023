@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -9,6 +10,7 @@ using System.Reflection;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using System.Xml.Schema;
 
 namespace advent2023
@@ -619,21 +621,27 @@ namespace advent2023
 
             public MachinePart(string input)
             {
-                string[] characteristics = input.Trim('{', '}').Split(',');
-                foreach (string characteristic in characteristics)
+                if (input == string.Empty)
                 {
-                    char c = characteristic[0];
-                    int value = int.Parse(characteristic.Substring(2, characteristic.Length - 2));
-                    if (c == 'x')
-                        x = value;
-                    else if (c == 'm')
-                        m = value;
-                    else if (c == 'a')
-                        a = value;
-                    else if (c == 's')
-                        s = value;
+                    x = 0; m = 0; a = 0; s = 0;
                 }
-
+                else
+                {
+                    string[] characteristics = input.Trim('{', '}').Split(',');
+                    foreach (string characteristic in characteristics)
+                    {
+                        char c = characteristic[0];
+                        int value = int.Parse(characteristic.Substring(2, characteristic.Length - 2));
+                        if (c == 'x')
+                            x = value;
+                        else if (c == 'm')
+                            m = value;
+                        else if (c == 'a')
+                            a = value;
+                        else if (c == 's')
+                            s = value;
+                    }
+                }
             }
         }
 
@@ -680,5 +688,144 @@ namespace advent2023
             }
         }
 
+        public class Range
+        {
+            public int Min { get; }
+            public int Max { get; }
+
+            public Range(int min, int max)
+            {
+                Min = min;
+                Max = max;
+            }
+
+        }
+
+        public class MachinePartRanges
+        {
+            public List<Range> x { get; set; }
+            public List<Range> m { get; set; }
+            public List<Range> a { get; set; }
+            public List<Range> s { get; set; }
+
+            public MachinePartRanges()
+            {
+
+            }
+        }
+
+        internal static List<List<string>> FindAcceptPaths(Dictionary<string, List<WorkflowRule>> workflows)
+        {
+            var allAcceptPaths = new List<List<string>>();
+            string startNode = "in";
+            string startCondition = "";
+            FindAcceptPathsFromNode(startNode, startCondition, workflows, new List<string>(), allAcceptPaths);
+            return allAcceptPaths;
+        }
+
+        internal static void FindAcceptPathsFromNode(string currentNode, string startCondition, Dictionary<string, List<WorkflowRule>> graph, List<string> currentPath, List<List<string>> allAcceptPaths)
+        {
+            currentPath.Add(startCondition);
+            //currentPath.Add(" " + startCondition + " => [" + currentNode + "]");
+
+            if (!graph.ContainsKey(currentNode) || graph[currentNode].Count == 0)
+            {
+                // Accept path found, add the current path to the list of Accept paths
+                allAcceptPaths.Add(new List<string>(currentPath));
+                currentPath.RemoveAt(currentPath.Count - 1); // Backtrack
+                return;
+            }
+            foreach (var rule in graph[currentNode])
+            {
+                if (rule.Destination == "A")
+                {
+
+                    string condition = string.Empty;
+                    List<WorkflowRule> rules = graph[currentNode];
+                    for (int i = 0; i < rules.Count; i++)
+                    {
+                        if (rules[i].Condition != rule.Condition)
+                        {
+                            condition += "!" + rules[i].Condition;
+                        }
+                        else if (rules[i].Condition == rule.Condition)
+                        {
+                            condition += ";" + rule.Condition;
+                            break;
+                        }
+                    }
+                    currentPath.Add(condition);
+
+                    // Accept path found, add the current path to the list of Accept paths
+                    allAcceptPaths.Add(new List<string>(currentPath));
+                    currentPath.RemoveAt(currentPath.Count - 1);
+                }
+                else if (rule.Destination == "R")
+                {
+                    // do nothing
+                }
+                else if (rule.Destination != null && !currentPath.Contains(rule.Destination))
+                {
+                    // Continue traversing if the rule leads to another node and it's not a cycle
+                    string condition = string.Empty;
+                    List<WorkflowRule> rules = graph[currentNode];
+                    for (int i = 0; i < rules.Count; i++)
+                    {
+                        if (rules[i].Condition != rule.Condition)
+                        {
+                            condition += "!" + rules[i].Condition;
+                        }
+                        else if (rules[i].Condition == rule.Condition)
+                        {
+                            condition += ";" + rule.Condition;
+                            break;
+                        }
+                    }
+                    FindAcceptPathsFromNode(rule.Destination, condition, graph, currentPath, allAcceptPaths);
+                }
+            }
+
+            currentPath.RemoveAt(currentPath.Count - 1); // Backtrack
+        }
+
+        internal static List<MachinePartRanges> FindAcceptRanges(List<List<string>> acceptPaths)
+        {
+            List<MachinePartRanges> mpRanges = new List<MachinePartRanges>();
+            foreach (List<string> path in acceptPaths)
+            {
+                MachinePartRanges mpRange = new MachinePartRanges();
+                foreach (string acceptPath in path)
+                {
+                    if (acceptPath != "")
+                    {
+                        string pathTrim = acceptPath.Trim(';').Trim();
+                        char c;
+                        Range r;
+                        if (pathTrim[0] != '!')
+                        {
+                            c = pathTrim[0];
+                            r = GetRangeFromAcceptPath(pathTrim.Substring(1, pathTrim.Length - 1));
+                        }
+
+                        else
+                        {
+                            c = pathTrim[1];
+                            r = GetRangeFromAcceptPath(pathTrim[0] + pathTrim.Substring(2, pathTrim.Length - 2));
+
+                        }
+                    }
+                }
+                Console.WriteLine();
+            }
+            return mpRanges;
+        }
+
+        private static Range GetRangeFromAcceptPath(string acceptPath)
+        {
+            Console.WriteLine("Trying to get range for: " + acceptPath);
+            Range r = new Range(0, 0);
+            return r;
+
+        }
     }
 }

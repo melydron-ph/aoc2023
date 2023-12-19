@@ -1,5 +1,6 @@
 ﻿using Microsoft.SqlServer.Server;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -42,7 +43,8 @@ namespace advent2023
             //Day10_Star1();
             //Day18_Star1();
             //Day18_Star2();
-            Day19_Star1();
+            //Day19_Star1();
+            Day19_Star2();
             ExitConsole();
         }
 
@@ -793,6 +795,7 @@ namespace advent2023
                 }
                 if (digStop > 0) { break; }
             }
+
             //PrintTrench(trenches, trenchLocations, offsetX, offsetY);
 
             for (int i = 0; i < arrayX; i++)
@@ -868,24 +871,20 @@ namespace advent2023
                     machineParts.Add(new MachinePart(partLine));
                 }
             }
-            string destination = "in";
-            List<WorkflowRule> currentRules = workflows[destination];
+            List<WorkflowRule> currentRules = workflows["in"];
             int i = 0;
             int total = 0;
             foreach (MachinePart machinePart in machineParts)
             {
                 bool processing = true;
-                //Console.WriteLine("---------\n MachinePart " + ++i);
                 while (processing)
                 {
                     foreach (WorkflowRule wfRule in currentRules)
                     {
-                        //Console.WriteLine("[" + destination + "] -- " + wfRule.Condition);
                         if (CompareToWorkflowRule(wfRule.Condition, machinePart))
                         {
                             if (wfRule.Destination == "A")
                             {
-                                //Console.WriteLine("MACHINEPART ACCEPTED");
                                 int mpSum = machinePart.x + machinePart.m + machinePart.a + machinePart.s;
                                 total += mpSum;
                                 processing = false;
@@ -893,21 +892,14 @@ namespace advent2023
                             }
                             else if (wfRule.Destination == "R")
                             {
-                                //Console.WriteLine("MACHINEPART REJECTED");
                                 processing = false;
                                 break;
                             }
                             else
                             {
-                                destination = wfRule.Destination;
-                                currentRules = workflows[destination];
-                                //Console.WriteLine("MOVING TO: " + destination);
+                                currentRules = workflows[wfRule.Destination];
                                 break;
                             }
-                        }
-                        else
-                        {
-                            //Console.WriteLine("FALSE");
                         }
                     }
                 }
@@ -932,8 +924,11 @@ namespace advent2023
                     Workflow wf = new Workflow(workflowLine);
                     workflows.Add(wf.Name, wf.WorkflowRules);
                 }
-
             }
+
+            List<List<string>> acceptPaths = FindAcceptPaths(workflows);
+
+            List<MachinePartRanges> acceptRanges = FindAcceptRanges(acceptPaths);
 
             Console.WriteLine("19*2 -- ");
         }
