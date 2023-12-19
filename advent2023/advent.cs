@@ -938,22 +938,10 @@ namespace advent2023
             long sum = 0;
             foreach (MachinePartRanges acceptRange in acceptRanges)
             {
-                foreach (Range range in acceptRange.x)
-                {
-                    xRange = range.Max - range.Min + 1;
-                }
-                foreach (Range range in acceptRange.m)
-                {
-                    mRange = range.Max - range.Min + 1;
-                }
-                foreach (Range range in acceptRange.a)
-                {
-                    aRange = range.Max - range.Min + 1;
-                }
-                foreach (Range range in acceptRange.s)
-                {
-                    sRange = range.Max - range.Min + 1;
-                }
+                xRange = acceptRange.x.Max - acceptRange.x.Min + 1;
+                mRange = acceptRange.m.Max - acceptRange.m.Min + 1;
+                aRange = acceptRange.a.Max - acceptRange.a.Min + 1;
+                sRange = acceptRange.s.Max - acceptRange.s.Min + 1;
                 long isum = xRange * mRange * aRange * sRange;
                 sum += isum;
             }

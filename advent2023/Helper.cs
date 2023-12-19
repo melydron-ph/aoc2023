@@ -702,17 +702,13 @@ namespace advent2023
 
         public class MachinePartRanges
         {
-            public List<Range> x { get; set; }
-            public List<Range> m { get; set; }
-            public List<Range> a { get; set; }
-            public List<Range> s { get; set; }
+            public Range x { get; set; }
+            public Range m {get; set; }
+            public Range a { get; set; }
+            public Range s { get; set; }
 
             public MachinePartRanges()
             {
-                x = new List<Range>();
-                m = new List<Range>();
-                a = new List<Range>();
-                s = new List<Range>();
             }
         }
 
@@ -837,57 +833,41 @@ namespace advent2023
                 foreach (Range r in xRanges)
                 {
                     if (r.Min > rangeMin)
-                    {
                         rangeMin = r.Min;
-                    }
                     if (r.Max < rangeMax)
-                    {
                         rangeMax = r.Max;
-                    }
                 }
-                mpRange.x.Add(new Range(rangeMin, rangeMax));
+                mpRange.x = new Range(rangeMin, rangeMax);
                 rangeMin = 1;
                 rangeMax = 4000;
                 foreach (Range r in mRanges)
                 {
                     if (r.Min > rangeMin)
-                    {
                         rangeMin = r.Min;
-                    }
                     if (r.Max < rangeMax)
-                    {
                         rangeMax = r.Max;
-                    }
                 }
-                mpRange.m.Add(new Range(rangeMin, rangeMax));
+                mpRange.m = new Range(rangeMin, rangeMax);
                 rangeMin = 1;
                 rangeMax = 4000;
                 foreach (Range r in aRanges)
                 {
                     if (r.Min > rangeMin)
-                    {
                         rangeMin = r.Min;
-                    }
                     if (r.Max < rangeMax)
-                    {
                         rangeMax = r.Max;
-                    }
                 }
-                mpRange.a.Add(new Range(rangeMin, rangeMax));
+                mpRange.a = new Range(rangeMin, rangeMax);
                 rangeMin = 1;
                 rangeMax = 4000;
                 foreach (Range r in sRanges)
                 {
                     if (r.Min > rangeMin)
-                    {
                         rangeMin = r.Min;
-                    }
                     if (r.Max < rangeMax)
-                    {
                         rangeMax = r.Max;
-                    }
                 }
-                mpRange.s.Add(new Range(rangeMin, rangeMax));
+                mpRange.s = new Range(rangeMin, rangeMax);
                 mpRanges.Add(mpRange);
             }
             return mpRanges;
