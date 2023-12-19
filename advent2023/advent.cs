@@ -43,7 +43,7 @@ namespace advent2023
             //Day10_Star1();
             //Day18_Star1();
             //Day18_Star2();
-            //Day19_Star1();
+            Day19_Star1();
             Day19_Star2();
             ExitConsole();
         }
@@ -763,7 +763,8 @@ namespace advent2023
                 //Console.WriteLine("Location: " + location + " --- [" + x + "," + y + "]");
 
             }
-            //PrintTrench(trenches, trenchLocations, offsetX, offsetY);
+            Console.ReadKey();
+            PrintTrench(trenches, trenchLocations, offsetX, offsetY);
 
 
             int digStop = -1;
@@ -796,7 +797,8 @@ namespace advent2023
                 if (digStop > 0) { break; }
             }
 
-            //PrintTrench(trenches, trenchLocations, offsetX, offsetY);
+            Console.ReadKey();
+            PrintTrench(trenches, trenchLocations, offsetX, offsetY);
 
             for (int i = 0; i < arrayX; i++)
             {
@@ -911,8 +913,8 @@ namespace advent2023
 
         private static void Day19_Star2()
         {
-            var textFile = @"C:\aoc\2023\day19\test.txt";
-            //var textFile = @"C:\aoc\2023\day19\input.txt";
+            //var textFile = @"C:\aoc\2023\day19\test.txt";
+            var textFile = @"C:\aoc\2023\day19\input.txt";
             string file = File.ReadAllText(textFile);
             string[] fileBlocks = file.Split(new string[] { "\r\n\r\n", "\n\n" }, StringSplitOptions.None);
             string[] workflowsBlock = fileBlocks[0].Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
@@ -929,8 +931,34 @@ namespace advent2023
             List<List<string>> acceptPaths = FindAcceptPaths(workflows);
 
             List<MachinePartRanges> acceptRanges = FindAcceptRanges(acceptPaths);
+            long xRange = 0;
+            long mRange = 0;
+            long aRange = 0;
+            long sRange = 0;
+            long sum = 0;
+            foreach (MachinePartRanges acceptRange in acceptRanges)
+            {
+                foreach (Range range in acceptRange.x)
+                {
+                    xRange = range.Max - range.Min + 1;
+                }
+                foreach (Range range in acceptRange.m)
+                {
+                    mRange = range.Max - range.Min + 1;
+                }
+                foreach (Range range in acceptRange.a)
+                {
+                    aRange = range.Max - range.Min + 1;
+                }
+                foreach (Range range in acceptRange.s)
+                {
+                    sRange = range.Max - range.Min + 1;
+                }
+                long isum = xRange * mRange * aRange * sRange;
+                sum += isum;
+            }
 
-            Console.WriteLine("19*2 -- ");
+            Console.WriteLine("19*2 -- " + sum);
         }
 
         private static void ExitConsole()

@@ -690,15 +690,14 @@ namespace advent2023
 
         public class Range
         {
-            public int Min { get; }
-            public int Max { get; }
+            public int Min { get; set; }
+            public int Max { get; set; }
 
             public Range(int min, int max)
             {
                 Min = min;
                 Max = max;
             }
-
         }
 
         public class MachinePartRanges
@@ -710,7 +709,10 @@ namespace advent2023
 
             public MachinePartRanges()
             {
-
+                x = new List<Range>();
+                m = new List<Range>();
+                a = new List<Range>();
+                s = new List<Range>();
             }
         }
 
@@ -726,7 +728,6 @@ namespace advent2023
         internal static void FindAcceptPathsFromNode(string currentNode, string startCondition, Dictionary<string, List<WorkflowRule>> graph, List<string> currentPath, List<List<string>> allAcceptPaths)
         {
             currentPath.Add(startCondition);
-            //currentPath.Add(" " + startCondition + " => [" + currentNode + "]");
 
             if (!graph.ContainsKey(currentNode) || graph[currentNode].Count == 0)
             {
@@ -746,7 +747,7 @@ namespace advent2023
                     {
                         if (rules[i].Condition != rule.Condition)
                         {
-                            condition += "!" + rules[i].Condition;
+                            condition += ";!" + rules[i].Condition;
                         }
                         else if (rules[i].Condition == rule.Condition)
                         {
@@ -773,7 +774,7 @@ namespace advent2023
                     {
                         if (rules[i].Condition != rule.Condition)
                         {
-                            condition += "!" + rules[i].Condition;
+                            condition += ";!" + rules[i].Condition;
                         }
                         else if (rules[i].Condition == rule.Condition)
                         {
@@ -794,37 +795,137 @@ namespace advent2023
             foreach (List<string> path in acceptPaths)
             {
                 MachinePartRanges mpRange = new MachinePartRanges();
+                List<Range> xRanges = new List<Range>();
+                List<Range> mRanges = new List<Range>();
+                List<Range> aRanges = new List<Range>();
+                List<Range> sRanges = new List<Range>();
                 foreach (string acceptPath in path)
                 {
-                    if (acceptPath != "")
+                    string replacedPath = acceptPath.Replace(";;", ";");
+                    if (replacedPath != "")
                     {
-                        string pathTrim = acceptPath.Trim(';').Trim();
+                        string[] rules = replacedPath.Trim(';').Trim().Split(';');
                         char c;
                         Range r;
-                        if (pathTrim[0] != '!')
+                        foreach (string rule in rules)
                         {
-                            c = pathTrim[0];
-                            r = GetRangeFromAcceptPath(pathTrim.Substring(1, pathTrim.Length - 1));
+                            string checkRule = rule.Trim(';');
+                            if (checkRule[0] != '!')
+                            {
+                                c = checkRule[0];
+                                r = GetRangeFromAcceptPath(checkRule.Substring(1, checkRule.Length - 1));
+                            }
+                            else
+                            {
+                                c = checkRule[1];
+                                r = GetRangeFromAcceptPath(checkRule[0] + checkRule.Substring(2, checkRule.Length - 2));
+                            }
+                            if (c == 'x')
+                                xRanges.Add(r);
+                            else if (c == 'm')
+                                mRanges.Add(r);
+                            else if (c == 'a')
+                                aRanges.Add(r);
+                            else // c == 's'
+                                sRanges.Add(r);
                         }
 
-                        else
-                        {
-                            c = pathTrim[1];
-                            r = GetRangeFromAcceptPath(pathTrim[0] + pathTrim.Substring(2, pathTrim.Length - 2));
-
-                        }
                     }
                 }
-                Console.WriteLine();
+                int rangeMin = 1;
+                int rangeMax = 4000;
+                foreach (Range r in xRanges)
+                {
+                    if (r.Min > rangeMin)
+                    {
+                        rangeMin = r.Min;
+                    }
+                    if (r.Max < rangeMax)
+                    {
+                        rangeMax = r.Max;
+                    }
+                }
+                mpRange.x.Add(new Range(rangeMin, rangeMax));
+                rangeMin = 1;
+                rangeMax = 4000;
+                foreach (Range r in mRanges)
+                {
+                    if (r.Min > rangeMin)
+                    {
+                        rangeMin = r.Min;
+                    }
+                    if (r.Max < rangeMax)
+                    {
+                        rangeMax = r.Max;
+                    }
+                }
+                mpRange.m.Add(new Range(rangeMin, rangeMax));
+                rangeMin = 1;
+                rangeMax = 4000;
+                foreach (Range r in aRanges)
+                {
+                    if (r.Min > rangeMin)
+                    {
+                        rangeMin = r.Min;
+                    }
+                    if (r.Max < rangeMax)
+                    {
+                        rangeMax = r.Max;
+                    }
+                }
+                mpRange.a.Add(new Range(rangeMin, rangeMax));
+                rangeMin = 1;
+                rangeMax = 4000;
+                foreach (Range r in sRanges)
+                {
+                    if (r.Min > rangeMin)
+                    {
+                        rangeMin = r.Min;
+                    }
+                    if (r.Max < rangeMax)
+                    {
+                        rangeMax = r.Max;
+                    }
+                }
+                mpRange.s.Add(new Range(rangeMin, rangeMax));
+                mpRanges.Add(mpRange);
             }
             return mpRanges;
         }
 
         private static Range GetRangeFromAcceptPath(string acceptPath)
         {
-            Console.WriteLine("Trying to get range for: " + acceptPath);
-            Range r = new Range(0, 0);
-            return r;
+            char o = acceptPath[0];
+            if (o == '!')
+            {
+                o = acceptPath[1];
+                int value = int.Parse(acceptPath.Substring(2, acceptPath.Length - 2));
+                if (o == '>') // ! x > value (x <= value )
+                {
+                    Range r = new Range(1, value);
+                    return r;
+                }
+                else // (o == '<') // ! x < value ( x>= value )
+                {
+                    Range r = new Range(value, 4000);
+                    return r;
+                }
+            }
+            else
+            {
+                int value = int.Parse(acceptPath.Substring(1, acceptPath.Length - 1));
+                if (o == '>') // x > value
+                {
+                    Range r = new Range(value + 1, 4000);
+                    return r;
+                }
+                else // (o == '<') // x < value
+                {
+                    Range r = new Range(1, value - 1);
+                    return r;
+                }
+
+            }
 
         }
     }
