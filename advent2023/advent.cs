@@ -13,6 +13,7 @@ using System.Runtime.Versioning;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static advent2023.Helper;
 
 namespace advent2023
 {
@@ -38,9 +39,10 @@ namespace advent2023
             //Day8_Star2();
             //Day9_Star1();
             //Day9_Star2();
-            Day10_Star1();
+            //Day10_Star1();
             //Day18_Star1();
             //Day18_Star2();
+            Day19_Star1();
             ExitConsole();
         }
 
@@ -51,8 +53,8 @@ namespace advent2023
             int totalSum = 0;
             foreach (string line in lines)
             {
-                int firstDigit = Helper.GetFirstDigitFromString(line);
-                int secondDigit = Helper.GetFirstDigitFromString(Helper.ReverseString(line));
+                int firstDigit = GetFirstDigitFromString(line);
+                int secondDigit = GetFirstDigitFromString(ReverseString(line));
                 int lineSum = int.Parse(firstDigit.ToString() + secondDigit.ToString());
                 totalSum += lineSum;
             }
@@ -67,9 +69,9 @@ namespace advent2023
             int totalSum = 0;
             foreach (string line in lines)
             {
-                string newLine = Helper.ReplaceWordsToDigits(line);
-                int firstDigit = Helper.GetFirstDigitFromString(newLine);
-                int secondDigit = Helper.GetFirstDigitFromString(Helper.ReverseString(newLine));
+                string newLine = ReplaceWordsToDigits(line);
+                int firstDigit = GetFirstDigitFromString(newLine);
+                int secondDigit = GetFirstDigitFromString(ReverseString(newLine));
                 int lineSum = 0;
                 lineSum = int.Parse(firstDigit.ToString() + secondDigit.ToString());
                 totalSum += lineSum;
@@ -193,7 +195,7 @@ namespace advent2023
                             numberEnd = j;
                         else
                             numberEnd = j - 1;
-                        if (Helper.NumberIsGood(i, numberStart, numberEnd, lines))
+                        if (NumberIsGood(i, numberStart, numberEnd, lines))
                             totalSum += number;
                     }
                 }
@@ -217,7 +219,7 @@ namespace advent2023
                     char c = lines[i][j];
                     if (c == '*')
                     {
-                        List<int> gearNumbers = Helper.FindGearNumbers(i, j, lines);
+                        List<int> gearNumbers = FindGearNumbers(i, j, lines);
                         if (gearNumbers.Count == 2)
                         {
                             totalSum += gearNumbers[0] * gearNumbers[1];
@@ -492,12 +494,12 @@ namespace advent2023
             }
             handsAndBids.Sort(delegate ((string hand, int bid) h1, (string hand, int bid) h2)
             {
-                int type1 = Helper.FindHandType(h1.hand);
-                int type2 = Helper.FindHandType(h2.hand);
+                int type1 = FindHandType(h1.hand);
+                int type2 = FindHandType(h2.hand);
                 int compareTo = type2.CompareTo(type1);
                 if (compareTo == 0)
                 {
-                    compareTo = Helper.SolveDraw(h1.hand, h2.hand);
+                    compareTo = SolveDraw(h1.hand, h2.hand);
 
                 }
                 return compareTo;
@@ -528,12 +530,12 @@ namespace advent2023
             }
             handsAndBids.Sort(delegate ((string hand, int bid) h1, (string hand, int bid) h2)
             {
-                int type1 = Helper.FindHandType2(h1.hand);
-                int type2 = Helper.FindHandType2(h2.hand);
+                int type1 = FindHandType2(h1.hand);
+                int type2 = FindHandType2(h2.hand);
                 int compareTo = type2.CompareTo(type1);
                 if (compareTo == 0)
                 {
-                    compareTo = Helper.SolveDraw2(h1.hand, h2.hand);
+                    compareTo = SolveDraw2(h1.hand, h2.hand);
                 }
                 return compareTo;
             });
@@ -644,7 +646,7 @@ namespace advent2023
                 currentStep++;
 
             }
-            Console.WriteLine("8*2 -- " + Helper.LCMOfList(nodeSteps));
+            Console.WriteLine("8*2 -- " + LCMOfList(nodeSteps));
         }
 
         private static void Day9_Star1()
@@ -656,7 +658,7 @@ namespace advent2023
             foreach (string line in lines)
             {
                 int[] numbers = Array.ConvertAll(line.Split(' ').ToArray(), int.Parse);
-                int nextValue = Helper.FindSequenceNextValue(numbers);
+                int nextValue = FindSequenceNextValue(numbers);
                 total += nextValue;
             }
             Console.WriteLine("9*1 -- " + total);
@@ -671,10 +673,25 @@ namespace advent2023
             foreach (string line in lines)
             {
                 int[] numbers = Array.ConvertAll(line.Split(' ').ToArray(), int.Parse);
-                int nextValue = Helper.FindSequencePrevValue(numbers);
+                int nextValue = FindSequencePrevValue(numbers);
                 total += nextValue;
             }
             Console.WriteLine("9*2 -- " + total);
+        }
+
+        private static void Day10_Star1()
+        {
+            //var textFile = @"C:\aoc\2023\day10\test.txt";
+            var textFile = @"C:\aoc\2023\day10\input.txt";
+            string file = File.ReadAllText(textFile);
+            file = file.Replace('7', '┐').Replace('|', '│').Replace('L', '└').Replace('F', '┌').Replace('J', '┘').Replace('-', '─');
+            string[] lines = file.Split('\n');
+            foreach (string line in lines)
+            {
+                Console.WriteLine(line);
+            }
+
+            Console.WriteLine("10*1 -- ");
         }
 
         private static void Day18_Star1()
@@ -744,7 +761,7 @@ namespace advent2023
                 //Console.WriteLine("Location: " + location + " --- [" + x + "," + y + "]");
 
             }
-            //Helper.PrintTrench(trenches, trenchLocations, offsetX, offsetY);
+            //PrintTrench(trenches, trenchLocations, offsetX, offsetY);
 
 
             int digStop = -1;
@@ -768,7 +785,7 @@ namespace advent2023
                         if (j < arrayY && trenches[i, j] == 1)
                         {
                             digStop = j;
-                            Helper.FloodFill(trenches, i, digStop - 1, 1);
+                            FloodFill(trenches, i, digStop - 1, 1);
                             break;
                         }
 
@@ -776,7 +793,7 @@ namespace advent2023
                 }
                 if (digStop > 0) { break; }
             }
-            //Helper.PrintTrench(trenches, trenchLocations, offsetX, offsetY);
+            //PrintTrench(trenches, trenchLocations, offsetX, offsetY);
 
             for (int i = 0; i < arrayX; i++)
             {
@@ -818,27 +835,107 @@ namespace advent2023
                     locX -= steps;
                 totalSteps += steps;
             }
-            double polygonArea = Helper.CalculateArea(points);
+            double polygonArea = CalculateArea(points);
 
             double result = polygonArea + totalSteps / 2 + 1;
 
             Console.WriteLine("18*2 -- " + result);
         }
 
-
-        private static void Day10_Star1()
+        private static void Day19_Star1()
         {
-            //var textFile = @"C:\aoc\2023\day10\test.txt";
-            var textFile = @"C:\aoc\2023\day10\input.txt";
+            //var textFile = @"C:\aoc\2023\day19\test.txt";
+            var textFile = @"C:\aoc\2023\day19\input.txt";
             string file = File.ReadAllText(textFile);
-            file = file.Replace('7', '┐').Replace('|', '│').Replace('L', '└').Replace('F', '┌').Replace('J', '┘').Replace('-', '─');
-            string[] lines = file.Split('\n');
-            foreach (string line in lines)
+            string[] fileBlocks = file.Split(new string[] { "\r\n\r\n", "\n\n" }, StringSplitOptions.None);
+            string[] workflowsBlock = fileBlocks[0].Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+            string[] partsBlock = fileBlocks[1].Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+            Dictionary<string, List<WorkflowRule>> workflows = new Dictionary<string, List<WorkflowRule>>();
+            List<MachinePart> machineParts = new List<MachinePart>();
+            foreach (string workflowLine in workflowsBlock)
             {
-                Console.WriteLine(line);
+                if (workflowLine != "")
+                {
+                    Workflow wf = new Workflow(workflowLine);
+                    workflows.Add(wf.Name, wf.WorkflowRules);
+                }
+
+            }
+            foreach (string partLine in partsBlock)
+            {
+                if (partLine != "")
+                {
+                    machineParts.Add(new MachinePart(partLine));
+                }
+            }
+            string destination = "in";
+            List<WorkflowRule> currentRules = workflows[destination];
+            int i = 0;
+            int total = 0;
+            foreach (MachinePart machinePart in machineParts)
+            {
+                bool processing = true;
+                //Console.WriteLine("---------\n MachinePart " + ++i);
+                while (processing)
+                {
+                    foreach (WorkflowRule wfRule in currentRules)
+                    {
+                        //Console.WriteLine("[" + destination + "] -- " + wfRule.Condition);
+                        if (CompareToWorkflowRule(wfRule.Condition, machinePart))
+                        {
+                            if (wfRule.Destination == "A")
+                            {
+                                //Console.WriteLine("MACHINEPART ACCEPTED");
+                                int mpSum = machinePart.x + machinePart.m + machinePart.a + machinePart.s;
+                                total += mpSum;
+                                processing = false;
+                                break;
+                            }
+                            else if (wfRule.Destination == "R")
+                            {
+                                //Console.WriteLine("MACHINEPART REJECTED");
+                                processing = false;
+                                break;
+                            }
+                            else
+                            {
+                                destination = wfRule.Destination;
+                                currentRules = workflows[destination];
+                                //Console.WriteLine("MOVING TO: " + destination);
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            //Console.WriteLine("FALSE");
+                        }
+                    }
+                }
+                currentRules = workflows["in"];
             }
 
-            Console.WriteLine("10*1 -- ");
+            Console.WriteLine("19*1 -- " + total);
+        }
+
+        private static void Day19_Star2()
+        {
+            var textFile = @"C:\aoc\2023\day19\test.txt";
+            //var textFile = @"C:\aoc\2023\day19\input.txt";
+            string file = File.ReadAllText(textFile);
+            string[] fileBlocks = file.Split(new string[] { "\r\n\r\n", "\n\n" }, StringSplitOptions.None);
+            string[] workflowsBlock = fileBlocks[0].Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+            Dictionary<string, List<WorkflowRule>> workflows = new Dictionary<string, List<WorkflowRule>>();
+            foreach (string workflowLine in workflowsBlock)
+            {
+                if (workflowLine != "")
+                {
+                    Workflow wf = new Workflow(workflowLine);
+                    workflows.Add(wf.Name, wf.WorkflowRules);
+                }
+
+            }
+
+            Console.WriteLine("19*2 -- ");
         }
 
         private static void ExitConsole()

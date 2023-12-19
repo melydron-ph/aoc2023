@@ -570,5 +570,115 @@ namespace advent2023
             return result;
         }
 
+        public class Workflow
+        {
+            public string Name { get; set; }
+            public List<WorkflowRule> WorkflowRules { get; set; }
+
+            public Workflow(string input)
+            {
+                int braceOpenIndex = input.IndexOf('{');
+                int braceCloseIndex = input.IndexOf('}');
+
+                Name = input.Substring(0, braceOpenIndex).Trim();
+
+                WorkflowRules = new List<WorkflowRule>();
+                string rulesStr = input.Substring(braceOpenIndex + 1, braceCloseIndex - braceOpenIndex - 1);
+
+                string[] ruleTokens = rulesStr.Split(',');
+
+                foreach (string ruleToken in ruleTokens)
+                {
+                    string[] ruleParts = ruleToken.Split(':');
+                    string condition = string.Empty;
+                    string destination = ruleParts[0].Trim();
+                    if (ruleParts.Length > 1)
+                    {
+                        condition = ruleParts[0].Trim();
+                        destination = ruleParts[1].Trim();
+                    }
+
+                    WorkflowRules.Add(new WorkflowRule { Condition = condition, Destination = destination });
+                }
+            }
+
+        }
+
+        public class WorkflowRule
+        {
+            public string Condition { get; set; }
+            public string Destination { get; set; }
+        }
+
+        public class MachinePart
+        {
+            public int x { get; set; }
+            public int m { get; set; }
+            public int a { get; set; }
+            public int s { get; set; }
+
+            public MachinePart(string input)
+            {
+                string[] characteristics = input.Trim('{', '}').Split(',');
+                foreach (string characteristic in characteristics)
+                {
+                    char c = characteristic[0];
+                    int value = int.Parse(characteristic.Substring(2, characteristic.Length - 2));
+                    if (c == 'x')
+                        x = value;
+                    else if (c == 'm')
+                        m = value;
+                    else if (c == 'a')
+                        a = value;
+                    else if (c == 's')
+                        s = value;
+                }
+
+            }
+        }
+
+        internal static bool CompareToWorkflowRule(string condition, MachinePart machinePart)
+        {
+            if (condition == string.Empty)
+            {
+                return true;
+            }
+            char c = condition[0];
+            int characteristicValue = -1;
+            if (c == 'x')
+            {
+                characteristicValue = machinePart.x;
+            }
+            else if (c == 'm')
+            {
+                characteristicValue = machinePart.m;
+            }
+            else if (c == 'a')
+            {
+                characteristicValue = machinePart.a;
+            }
+            else
+            {
+                characteristicValue = machinePart.s;
+            }
+            char o = condition[1];
+            int value = int.Parse(condition.Substring(2, condition.Length - 2));
+            if (o == '>')
+            {
+                if (characteristicValue > value)
+                    return true;
+                else
+                    return false;
+            }
+            else
+            {
+                if (characteristicValue < value)
+                    return true;
+                else
+                    return false;
+
+            }
+        }
+
     }
 }
