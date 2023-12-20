@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Remoting.Messaging;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -703,7 +704,7 @@ namespace advent2023
         public class MachinePartRanges
         {
             public Range x { get; set; }
-            public Range m {get; set; }
+            public Range m { get; set; }
             public Range a { get; set; }
             public Range s { get; set; }
 
@@ -907,6 +908,75 @@ namespace advent2023
 
             }
 
+        }
+
+
+        public class Module
+        {
+            public string Name { get; set; }
+            public int Pulse { get; set; }
+            public virtual int SendPulse()
+            {
+                return 0;
+            }
+            public virtual bool ReceivePulse(int pulse)
+            {
+                return false;
+            }
+            public List<string> modules { get; } = new List<string>();
+
+            public Module(string name)
+            {
+                Name = name;
+            }
+        }
+
+        public class FlipFlop : Module
+        {
+            private bool state = false;
+            public FlipFlop(string name) : base(name) { }
+            public override int SendPulse()
+            {
+                return state ? 0 : 1;
+            }
+
+            public override bool ReceivePulse(int pulse)
+            {
+                Pulse = SendPulse();
+                //Console.WriteLine("\t\t" + Name + " <- " + pulse + " :: " + " -> " + Pulse);
+                if (pulse == 0)
+                {
+                    state = !state;
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public class Conjunction : Module
+        {
+            public Conjunction(string name) : base(name) { }
+            private List<int> pulses = new List<int>();
+
+            public override int SendPulse()
+            {
+                foreach (int pulse in pulses)
+                {
+                    if (pulse != 1)
+                    {
+                        return 1;
+                    }
+                }
+                return 0;
+            }
+
+            public override bool ReceivePulse(int pulse)
+            {
+                Pulse = SendPulse();
+                //Console.WriteLine("\t\t" + Name + " <- " + pulse + " :: " + " -> " + Pulse);
+                pulses.Add(pulse);
+                return true;
+            }
         }
     }
 }

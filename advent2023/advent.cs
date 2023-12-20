@@ -43,8 +43,9 @@ namespace advent2023
             //Day10_Star1();
             //Day18_Star1();
             //Day18_Star2();
-            Day19_Star1();
-            Day19_Star2();
+            //Day19_Star1();
+            //Day19_Star2();
+            Day20_Star1();
             ExitConsole();
         }
 
@@ -947,6 +948,123 @@ namespace advent2023
             }
 
             Console.WriteLine("19*2 -- " + sum);
+        }
+
+        private static void Day20_Star1()
+        {
+            var textFile = @"C:\aoc\2023\day20\test1.txt";
+            //var textFile = @"C:\aoc\2023\day20\test2.txt";
+            //var textFile = @"C:\aoc\2023\day20\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            int total = 0;
+            Dictionary<string, Module> modules = new Dictionary<string, Module>();
+
+            // create broadcaster
+            Module bc = new Module("bc"); ;
+            string modulesPart = lines[0].Split('>')[1].Trim();
+            string[] modulesToAdd = modulesPart.Split(',');
+            foreach (string m in modulesToAdd)
+            {
+                bc.modules.Add(m.Trim());
+            }
+            modules.Add("bc", bc);
+
+            // create other modules
+            foreach (string line in lines.Skip(1))
+            {
+                modulesPart = line.Split('>')[1].Trim();
+                modulesToAdd = modulesPart.Split(',');
+                if (line[0] == '%')
+                {
+                    string namePart = line.Split(' ')[0];
+                    string name = namePart.Substring(1, namePart.Length - 1);
+                    FlipFlop f = new FlipFlop(name);
+
+                    foreach (string m in modulesToAdd)
+                    {
+                        f.modules.Add(m.Trim());
+                    }
+                    modules.Add(f.Name, f);
+                }
+                else // line[0] == '&'
+                {
+                    string namePart = line.Split(' ')[0];
+                    string name = namePart.Substring(1, namePart.Length - 1);
+                    Conjunction c = new Conjunction(name);
+                    foreach (string m in modulesToAdd)
+                    {
+                        c.modules.Add(m.Trim());
+                    }
+                    modules.Add(c.Name, c);
+                }
+            }
+
+            int low = 0;
+            int high = 0;
+            Queue<string> responseQ = new Queue<string>();
+            foreach (string moduleName in modules["bc"].modules)
+            {
+                low++;
+                Console.WriteLine("bc -low-> " + moduleName);
+                if (modules[moduleName].ReceivePulse(0))
+                    responseQ.Enqueue(moduleName);
+            }
+
+            int cycle = 0;
+            while (true)
+            {
+                //Console.WriteLine("------ cycle " + ++cycle + "------");
+                List<(int, string)> pulsesToSend = new List<(int, string)>();
+                while (responseQ.Count > 0)
+                {
+                    string moduleName = responseQ.Dequeue();
+                    Module m = modules[moduleName];
+                    pulsesToSend.Add((m.Pulse, m.Name));
+                }
+                foreach ((int, string) pulse in pulsesToSend)
+                {
+                    int p = pulse.Item1;
+                    Module m = modules[pulse.Item2];
+
+                    foreach (string recipient in m.modules)
+                    {
+                        if (p == 0)
+                        {
+                            Console.WriteLine(m.Name + " - low-> " + recipient);
+                            low++;
+
+                        }
+                        else
+                        {
+                            Console.WriteLine(m.Name + " - high-> " + recipient);
+                            high++;
+                        }
+                        if (recipient != "output")
+                        {
+                            if (modules[recipient].ReceivePulse(p))
+                            {
+                                responseQ.Enqueue(recipient);
+                            }
+                        }
+                    }
+                }
+                if (responseQ.Count == 0)
+                    break;
+            }
+            total = low * high;
+            Console.WriteLine("20*1 -- " + total * 1000);
+        }
+
+        private static void Day20_Star2()
+        {
+            //var textFile = @"C:\aoc\2023\day20\test.txt";
+            var textFile = @"C:\aoc\2023\day20\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            int total = 0;
+            foreach (string line in lines)
+            {
+            }
+            Console.WriteLine("20*2 -- " + total);
         }
 
         private static void ExitConsole()
