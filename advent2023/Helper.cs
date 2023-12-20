@@ -919,11 +919,11 @@ namespace advent2023
             {
                 return 0;
             }
-            public virtual bool ReceivePulse(int pulse)
+            public virtual bool ReceivePulse(int pulse, string sender)
             {
                 return false;
             }
-            public List<string> modules { get; } = new List<string>();
+            public List<string> Modules { get; } = new List<string>();
 
             public Module(string name)
             {
@@ -933,17 +933,17 @@ namespace advent2023
 
         public class FlipFlop : Module
         {
-            private bool state = false;
+            public bool state = false;
             public FlipFlop(string name) : base(name) { }
             public override int SendPulse()
             {
                 return state ? 0 : 1;
             }
 
-            public override bool ReceivePulse(int pulse)
+            public override bool ReceivePulse(int pulse, string sender)
             {
-                Pulse = SendPulse();
                 //Console.WriteLine("\t\t" + Name + " <- " + pulse + " :: " + " -> " + Pulse);
+                Pulse = SendPulse();
                 if (pulse == 0)
                 {
                     state = !state;
@@ -956,13 +956,13 @@ namespace advent2023
         public class Conjunction : Module
         {
             public Conjunction(string name) : base(name) { }
-            private List<int> pulses = new List<int>();
+            private Dictionary<string, int> inputModules = new Dictionary<string, int>();
 
             public override int SendPulse()
             {
-                foreach (int pulse in pulses)
+                foreach (KeyValuePair<string, int> kvp in inputModules)
                 {
-                    if (pulse != 1)
+                    if (kvp.Value != 1)
                     {
                         return 1;
                     }
@@ -970,13 +970,21 @@ namespace advent2023
                 return 0;
             }
 
-            public override bool ReceivePulse(int pulse)
+            public override bool ReceivePulse(int pulse, string sender)
             {
-                Pulse = SendPulse();
                 //Console.WriteLine("\t\t" + Name + " <- " + pulse + " :: " + " -> " + Pulse);
-                pulses.Add(pulse);
+                if (!inputModules.ContainsKey(sender))
+                {
+                    inputModules.Add(sender, pulse);
+                }
+                else
+                {
+                    inputModules[sender] = pulse;
+                }
+                Pulse = SendPulse();
                 return true;
             }
+
         }
     }
 }

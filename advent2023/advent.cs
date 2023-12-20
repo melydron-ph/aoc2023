@@ -1,6 +1,7 @@
 ﻿using Microsoft.SqlServer.Server;
 using System;
 using System.CodeDom;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -45,7 +46,8 @@ namespace advent2023
             //Day18_Star2();
             //Day19_Star1();
             //Day19_Star2();
-            Day20_Star1();
+            //Day20_Star1();
+            Day20_Star2();
             ExitConsole();
         }
 
@@ -952,28 +954,18 @@ namespace advent2023
 
         private static void Day20_Star1()
         {
-            var textFile = @"C:\aoc\2023\day20\test1.txt";
+            //var textFile = @"C:\aoc\2023\day20\test1.txt";
             //var textFile = @"C:\aoc\2023\day20\test2.txt";
-            //var textFile = @"C:\aoc\2023\day20\input.txt";
+            var textFile = @"C:\aoc\2023\day20\input.txt";
             string[] lines = File.ReadAllLines(textFile);
             int total = 0;
-            Dictionary<string, Module> modules = new Dictionary<string, Module>();
 
-            // create broadcaster
-            Module bc = new Module("bc"); ;
-            string modulesPart = lines[0].Split('>')[1].Trim();
-            string[] modulesToAdd = modulesPart.Split(',');
-            foreach (string m in modulesToAdd)
-            {
-                bc.modules.Add(m.Trim());
-            }
-            modules.Add("bc", bc);
+            Dictionary<string, Module> modulesDictionary = new Dictionary<string, Module>();
 
-            // create other modules
-            foreach (string line in lines.Skip(1))
+            foreach (string line in lines)
             {
-                modulesPart = line.Split('>')[1].Trim();
-                modulesToAdd = modulesPart.Split(',');
+                string modulesPart = line.Split('>')[1].Trim();
+                string[] modulesToAdd = modulesPart.Split(',');
                 if (line[0] == '%')
                 {
                     string namePart = line.Split(' ')[0];
@@ -982,91 +974,292 @@ namespace advent2023
 
                     foreach (string m in modulesToAdd)
                     {
-                        f.modules.Add(m.Trim());
+                        f.Modules.Add(m.Trim());
                     }
-                    modules.Add(f.Name, f);
+                    modulesDictionary.Add(f.Name, f);
                 }
-                else // line[0] == '&'
+                else if (line[0] == '&')
                 {
                     string namePart = line.Split(' ')[0];
                     string name = namePart.Substring(1, namePart.Length - 1);
                     Conjunction c = new Conjunction(name);
                     foreach (string m in modulesToAdd)
                     {
-                        c.modules.Add(m.Trim());
+                        c.Modules.Add(m.Trim());
                     }
-                    modules.Add(c.Name, c);
+                    modulesDictionary.Add(c.Name, c);
+                }
+                else // broadcaster
+                {
+                    Module bc = new Module("bc"); ;
+                    foreach (string m in modulesToAdd)
+                    {
+                        bc.Modules.Add(m.Trim());
+                    }
+                    modulesDictionary.Add("bc", bc);
                 }
             }
 
-            int low = 0;
+            // initialize Conjuction connected inputs to 0
+            foreach (KeyValuePair<string, Module> kvp in modulesDictionary)
+            {
+                Module m = kvp.Value;
+                foreach (string recipient in m.Modules)
+                {
+                    if (modulesDictionary.ContainsKey(recipient))
+                    {
+                        var r = modulesDictionary[recipient];
+                        if (r.GetType() == typeof(Conjunction))
+                        {
+                            r.ReceivePulse(0, m.Name);
+                        }
+                    }
+                }
+            }
+
+            int low = 1; // button -low-> broadcaster
             int high = 0;
-            Queue<string> responseQ = new Queue<string>();
-            foreach (string moduleName in modules["bc"].modules)
+            Queue<(string, int)> responseQ = new Queue<(string, int)>();
+            int buttonPress = 1;
+            foreach (string moduleName in modulesDictionary["bc"].Modules)
             {
                 low++;
-                Console.WriteLine("bc -low-> " + moduleName);
-                if (modules[moduleName].ReceivePulse(0))
-                    responseQ.Enqueue(moduleName);
+                if (modulesDictionary[moduleName].ReceivePulse(0, "bc"))
+                {
+                    Module m = modulesDictionary[moduleName];
+                    responseQ.Enqueue((moduleName, m.Pulse));
+                }
             }
-
-            int cycle = 0;
-            while (true)
+            bool initStateReached = false;
+            while (!initStateReached)
             {
-                //Console.WriteLine("------ cycle " + ++cycle + "------");
-                List<(int, string)> pulsesToSend = new List<(int, string)>();
                 while (responseQ.Count > 0)
                 {
-                    string moduleName = responseQ.Dequeue();
-                    Module m = modules[moduleName];
-                    pulsesToSend.Add((m.Pulse, m.Name));
-                }
-                foreach ((int, string) pulse in pulsesToSend)
-                {
-                    int p = pulse.Item1;
-                    Module m = modules[pulse.Item2];
-
-                    foreach (string recipient in m.modules)
+                    (string, int) moduleNameAndPulse = responseQ.Dequeue();
+                    Module m = modulesDictionary[moduleNameAndPulse.Item1];
+                    int p = moduleNameAndPulse.Item2;
+                    foreach (string recipient in m.Modules)
                     {
                         if (p == 0)
                         {
-                            Console.WriteLine(m.Name + " - low-> " + recipient);
                             low++;
-
                         }
                         else
                         {
-                            Console.WriteLine(m.Name + " - high-> " + recipient);
                             high++;
                         }
-                        if (recipient != "output")
+                        if (modulesDictionary.ContainsKey(recipient))
                         {
-                            if (modules[recipient].ReceivePulse(p))
+                            if (modulesDictionary[recipient].ReceivePulse(p, m.Name))
                             {
-                                responseQ.Enqueue(recipient);
+                                Module r = modulesDictionary[recipient];
+                                responseQ.Enqueue((recipient, r.Pulse));
                             }
                         }
                     }
                 }
                 if (responseQ.Count == 0)
-                    break;
+                {
+                    initStateReached = true;
+                    foreach (KeyValuePair<string, Module> kvp in modulesDictionary)
+                    {
+                        var m = kvp.Value;
+                        if (m.GetType() == typeof(FlipFlop) && m.SendPulse() == 0) // State ON
+                        {
+                            initStateReached = false;
+                            break;
+                        }
+                    }
+                    if (!initStateReached)
+                    {
+                        ++buttonPress;
+                        if (buttonPress > 1000)
+                        {
+                            buttonPress--;
+                            break;
+                        }
+                        low++;
+                        foreach (string moduleName in modulesDictionary["bc"].Modules)
+                        {
+                            low++;
+                            if (modulesDictionary[moduleName].ReceivePulse(0, "bc"))
+                            {
+                                Module m = modulesDictionary[moduleName];
+                                responseQ.Enqueue((moduleName, m.Pulse));
+                            }
+                        }
+                    }
+                }
             }
-            total = low * high;
-            Console.WriteLine("20*1 -- " + total * 1000);
+            int cycles = 1000 / buttonPress;
+            total = low * high * cycles * cycles;
+            Console.WriteLine("20*1 -- " + total);
         }
 
         private static void Day20_Star2()
         {
-            //var textFile = @"C:\aoc\2023\day20\test.txt";
+            //var textFile = @"C:\aoc\2023\day20\test1.txt";
+            //var textFile = @"C:\aoc\2023\day20\test2.txt";
             var textFile = @"C:\aoc\2023\day20\input.txt";
             string[] lines = File.ReadAllLines(textFile);
             int total = 0;
+
+            Dictionary<string, Module> modulesDictionary = new Dictionary<string, Module>();
+
             foreach (string line in lines)
             {
-            }
-            Console.WriteLine("20*2 -- " + total);
-        }
+                string modulesPart = line.Split('>')[1].Trim();
+                string[] modulesToAdd = modulesPart.Split(',');
+                if (line[0] == '%')
+                {
+                    string namePart = line.Split(' ')[0];
+                    string name = namePart.Substring(1, namePart.Length - 1);
+                    FlipFlop f = new FlipFlop(name);
 
+                    foreach (string m in modulesToAdd)
+                    {
+                        f.Modules.Add(m.Trim());
+                    }
+                    modulesDictionary.Add(f.Name, f);
+                }
+                else if (line[0] == '&')
+                {
+                    string namePart = line.Split(' ')[0];
+                    string name = namePart.Substring(1, namePart.Length - 1);
+                    Conjunction c = new Conjunction(name);
+                    foreach (string m in modulesToAdd)
+                    {
+                        c.Modules.Add(m.Trim());
+                    }
+                    modulesDictionary.Add(c.Name, c);
+                }
+                else // broadcaster
+                {
+                    Module bc = new Module("bc"); ;
+                    foreach (string m in modulesToAdd)
+                    {
+                        bc.Modules.Add(m.Trim());
+                    }
+                    modulesDictionary.Add("bc", bc);
+                }
+            }
+
+            Conjunction conToRX = new Conjunction("");
+            // initialize Conjuction connected inputs to 0
+            foreach (KeyValuePair<string, Module> kvp in modulesDictionary)
+            {
+                Module m = kvp.Value;
+                foreach (string recipient in m.Modules)
+                {
+                    if (modulesDictionary.ContainsKey(recipient))
+                    {
+                        var r = modulesDictionary[recipient];
+                        if (r.GetType() == typeof(Conjunction))
+                        {
+                            r.ReceivePulse(0, m.Name);
+                        }
+                    }
+                    if (recipient == "rx")
+                    {
+                        conToRX = (Conjunction)m;
+                    }
+                }
+            }
+
+            Dictionary<string, int> modulesToConToRX = new Dictionary<string, int>();
+            foreach (KeyValuePair<string, Module> kvp in modulesDictionary)
+            {
+                Module m = kvp.Value;
+                foreach (string recipient in m.Modules)
+                {
+                    if (modulesDictionary.ContainsKey(recipient))
+                    {
+                        var r = modulesDictionary[recipient];
+                        if (r.GetType() == typeof(Conjunction))
+                        {
+                            r.ReceivePulse(0, m.Name);
+                        }
+                    }
+                    if (recipient == conToRX.Name)
+                    {
+                        modulesToConToRX.Add(m.Name, -1);
+                    }
+                }
+            }
+
+            Queue<(string, int)> responseQ = new Queue<(string, int)>();
+            int buttonPress = 1;
+            foreach (string moduleName in modulesDictionary["bc"].Modules)
+            {
+                if (modulesDictionary[moduleName].ReceivePulse(0, "bc"))
+                {
+                    Module m = modulesDictionary[moduleName];
+                    responseQ.Enqueue((moduleName, m.Pulse));
+                }
+            }
+            bool allStepsFound = false;
+            while (!allStepsFound)
+            {
+                while (responseQ.Count > 0)
+                {
+                    (string, int) moduleNameAndPulse = responseQ.Dequeue();
+                    Module m = modulesDictionary[moduleNameAndPulse.Item1];
+                    int p = moduleNameAndPulse.Item2;
+                    if (modulesToConToRX.ContainsKey(m.Name) && p == 1)
+                    {
+                        if (modulesToConToRX[m.Name] < 0)
+                            modulesToConToRX[m.Name] = buttonPress;
+                    }
+                    bool finished = true;
+                    foreach (KeyValuePair<string, int> kvp in modulesToConToRX)
+                    {
+                        int step = kvp.Value;
+                        if (step < 0)
+                        {
+                            finished = false;
+                            break;
+                        }
+                    }
+                    if (finished)
+                    {
+                        allStepsFound = true;
+                        break;
+                    }
+                    foreach (string recipient in m.Modules)
+                    {
+                        if (modulesDictionary.ContainsKey(recipient))
+                        {
+                            if (modulesDictionary[recipient].ReceivePulse(p, m.Name))
+                            {
+                                Module r = modulesDictionary[recipient];
+                                responseQ.Enqueue((recipient, r.Pulse));
+                            }
+                        }
+                    }
+                }
+                if (responseQ.Count == 0)
+                {
+                    ++buttonPress;
+                    foreach (string moduleName in modulesDictionary["bc"].Modules)
+                    {
+                        if (modulesDictionary[moduleName].ReceivePulse(0, "bc"))
+                        {
+                            Module m = modulesDictionary[moduleName];
+                            responseQ.Enqueue((moduleName, m.Pulse));
+                        }
+                    }
+                }
+            }
+
+            List<long> numbers = new List<long>();
+            foreach (KeyValuePair<string, int> kvp in modulesToConToRX)
+            {
+                int step = kvp.Value;
+                numbers.Add(step);
+            }
+
+            Console.WriteLine("20*2 -- " + LCMOfList(numbers));
+        }
         private static void ExitConsole()
         {
             Console.WriteLine("\n\nPress any key to close console.");
