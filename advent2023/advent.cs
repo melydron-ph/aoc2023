@@ -42,7 +42,8 @@ namespace advent2023
             //Day8_Star2();
             //Day9_Star1();
             //Day9_Star2();
-            Day10_Star1();
+            //Day10_Star1();
+            Day10_Star2();
             //Day18_Star1();
             //Day18_Star2();
             //Day19_Star1();
@@ -712,18 +713,54 @@ namespace advent2023
                     {
                         startX = i;
                         startY = j;
-                        //map[i, j] = '.';
                     }
                 }
             }
-            PrintMap(map);
+            //PrintMap(map);
             Console.WriteLine();
-            (int,int,int) furthestPoint = FindFurthestPointFromStart(startX, startY, map);
-
+            (int, int, int) furthestPoint = FindFurthestPointFromStart(startX, startY, map);
 
             Console.WriteLine("10*1 -- " + furthestPoint.Item3);
         }
 
+
+        private static void Day10_Star2()
+        {
+            //var textFile = @"C:\aoc\2023\day10\test1.txt";
+            //var textFile = @"C:\aoc\2023\day10\test2.txt";
+            var textFile = @"C:\aoc\2023\day10\input.txt";
+            string file = File.ReadAllText(textFile);
+            file = file.Replace('7', '┐').Replace('|', '│').Replace('L', '└').Replace('F', '┌').Replace('J', '┘').Replace('-', '─').Trim();
+            //file = file.Trim();
+            string[] lines = file.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+            int mapX = lines[0].Length;
+            int mapY = lines.Count();
+            char[,] map = new char[mapX, mapY];
+            int startX = 0;
+            int startY = 0;
+            for (int i = 0; i < mapY; i++)
+            {
+                string line = lines[i];
+                for (int j = 0; j < mapX; j++)
+                {
+                    map[i, j] = line[j];
+                    if (map[i, j] == 'S')
+                    {
+                        startX = i;
+                        startY = j;
+                    }
+                }
+            }
+            //PrintMap(map);
+            List<PointF> mapPath = TraversePath(map, startX, startY);
+
+            double polygonArea = CalculateArea(mapPath);
+
+            double result = polygonArea + mapPath.Count() / 2 + 1 - mapPath.Count() ;
+
+            Console.WriteLine("10*2 -- " + result);
+
+        }
         private static void Day18_Star1()
         {
             //var textFile = @"C:\aoc\2023\day18\test.txt";

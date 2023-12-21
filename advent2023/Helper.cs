@@ -1184,7 +1184,6 @@ namespace advent2023
 
             int mapX = map.GetLength(0);
             int mapY = map.GetLength(1);
-            Direction firstMove = FindFirstMove(startX, startY, map);
             bool[,] visited = new bool[mapX, mapY];
             Queue<(int x, int y, int distance)> queue = new Queue<(int, int, int)>();
             queue.Enqueue((startX, startY, 0));
@@ -1272,6 +1271,52 @@ namespace advent2023
             }
 
             return firstMove;
+        }
+
+        public static List<PointF> TraversePath(char[,] map, int startX, int startY)
+        {
+            List<PointF> path = new List<PointF>();
+            int currentX = startX, currentY = startY;
+            Direction currentDirection = FindFirstMove(startX, startY, map);
+
+            while (true)
+            {
+                path.Add(new PointF(currentX, currentY));
+
+                // Update position based on current direction
+                switch (currentDirection)
+                {
+                    case Direction.Up:
+                        currentDirection = Direction.Down;
+                        currentX--;
+                        break;
+                    case Direction.Down:
+                        currentDirection = Direction.Up;
+                        currentX++;
+                        break;
+                    case Direction.Left:
+                        currentDirection = Direction.Right;
+                        currentY--;
+                        break;
+                    case Direction.Right:
+                        currentDirection = Direction.Left;
+                        currentY++;
+                        break;
+                    default:
+                        return path; // Exit if direction is invalid
+                }
+
+                // Check if returned to the starting position
+                if (currentX == startX && currentY == startY)
+                    break;
+
+                // Update direction for the next move
+                char candidate = map[currentX, currentY];
+                currentDirection = CanEnter(currentDirection, candidate);
+            }
+
+            return path;
+
         }
     }
 }
