@@ -47,7 +47,10 @@ namespace advent2023
             //Day19_Star1();
             //Day19_Star2();
             //Day20_Star1();
-            Day20_Star2();
+            //Day20_Star2();
+            //Day21_Star1();
+            Day21_Star2();
+
             ExitConsole();
         }
 
@@ -1259,6 +1262,114 @@ namespace advent2023
             }
 
             Console.WriteLine("20*2 -- " + LCMOfList(numbers));
+        }
+
+        private static void Day21_Star1()
+        {
+            //int totalSteps = 6;
+            //var textFile = @"C:\aoc\2023\day21\test.txt";
+            int totalSteps = 64;
+            var textFile = @"C:\aoc\2023\day21\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            int mapX = lines[0].Length;
+            int mapY = lines.Count();
+            char[,] map = new char[mapX, mapY];
+            int startX = 0;
+            int startY = 0;
+            for (int i = 0; i < mapY; i++)
+            {
+                string line = lines[i];
+                for (int j = 0; j < mapX; j++)
+                {
+                    map[i, j] = line[j];
+                    if (map[i, j] == 'S')
+                    {
+                        startX = i;
+                        startY = j;
+                        map[i, j] = '.';
+                    }
+                }
+            }
+
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            Dictionary<(int, int, int), HashSet<(int, int)>> memo = new Dictionary<(int, int, int), HashSet<(int, int)>>();
+            HashSet<(int, int)> visitedPositions = GetVisitedPositionsIterative(startX, startY, totalSteps, ref memo, map);
+            stopwatch.Stop();
+
+            Console.WriteLine("21*1 -- " + visitedPositions.Count + " -- " + stopwatch.Elapsed.TotalSeconds.ToString(".0#"));
+        }
+
+        private static void Day21_Star2()
+        {
+
+            //https://www.reddit.com/r/adventofcode/comments/18nevo3/comment/keaiiq7/
+            // The main thing to notice for part 2 is that the grid is a square, and there are no obstacles in the same row/col of the starting point.
+            // Let f(n) be the number of spaces you can reach after n steps.Let X be the length of your input grid.
+            // f(n), f(n + X), f(n + 2X), ...., is a quadratic, so you can find it by finding the first 3 values,
+            // then use that to interpolate the final answer.
+
+            var textFile = @"C:\aoc\2023\day21\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            int mapX = lines[0].Length;
+            int mapY = lines.Count();
+            char[,] map = new char[mapX, mapY];
+            int startX = 0;
+            int startY = 0;
+            for (int i = 0; i < mapY; i++)
+            {
+                string line = lines[i];
+                for (int j = 0; j < mapX; j++)
+                {
+                    map[i, j] = line[j];
+                    if (map[i, j] == 'S')
+                    {
+                        startX = i;
+                        startY = j;
+                        map[i, j] = '.';
+                    }
+                }
+            }
+
+            int grids = 26501365 / mapX;
+            int rem = 26501365 % mapY;
+
+            List<int> sequence = new List<int>();
+
+            //f(n), f(n + X) and f(n + 2X)
+            for (int n = 0; n < 3; n++)
+            {
+                int totalSteps = n* lines[0].Length + rem;
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+                Dictionary<(int, int, int), HashSet<(int, int)>> memo = new Dictionary<(int, int, int), HashSet<(int, int)>>();
+                HashSet<(int, int)> visitedPositions = GetVisitedPositionsIterative(startX, startY, totalSteps, ref memo, map);
+                stopwatch.Stop();
+                Console.WriteLine("22*2 -" + n + "- " + visitedPositions.Count + " -- " + stopwatch.Elapsed.TotalSeconds.ToString(".0#"));
+                sequence.Add(visitedPositions.Count());
+
+                map[startX, startY] = 'S';
+                map = Create3x3Map(map);
+                mapX = map.GetLength(0);
+                mapY = map.GetLength(1);
+                for (int i = 0; i < mapY; i++)
+                {
+                    for (int j = 0; j < mapX; j++)
+                    {
+                        if (map[i, j] == 'S')
+                        {
+                            startX = i;
+                            startY = j;
+                            map[i, j] = '.';
+                        }
+                    }
+                }
+
+            }
+            // 22 * 2 - 0 - 3941-- .07
+            // 22 * 2 - 1 - 35259-- 4.27
+            // 22 * 2 - 2 - 97807-- 41.33
+
         }
         private static void ExitConsole()
         {

@@ -984,7 +984,107 @@ namespace advent2023
                 Pulse = SendPulse();
                 return true;
             }
+        }
 
+        internal static void PrintMap(char[,] map)
+        {
+            for (int i = 0; i < map.GetLength(0); i++)
+            {
+                for (int j = 0; j < map.GetLength(1); j++)
+                {
+                    Console.Write(map[i, j]);
+                }
+                Console.WriteLine();
+            }
+        }
+
+
+        internal static HashSet<(int, int)> GetVisitedPositionsIterative(int currentX, int currentY, int stepsLeft, ref Dictionary<(int, int, int), HashSet<(int, int)>> memo, char[,] map)
+        {
+            var stack = new Stack<(int x, int y, int steps)>();
+            var visited = new HashSet<(int, int)>();
+            stack.Push((currentX, currentY, stepsLeft));
+
+            while (stack.Count > 0)
+            {
+                var (x, y, steps) = stack.Pop();
+
+                if (steps == 0)
+                {
+                    visited.Add((x, y));
+                    continue;
+                }
+
+                if (memo.TryGetValue((x, y, steps), out var cachedResult))
+                {
+                    visited.UnionWith(cachedResult);
+                    continue;
+                }
+
+                var uniqueFields = new HashSet<(int, int)>();
+
+                // Move Up
+                if (x - 1 >= 0 && map[x - 1, y] == '.')
+                {
+                    stack.Push((x - 1, y, steps - 1));
+                }
+
+                // Move Down
+                if (x + 1 < map.GetLength(0) && map[x + 1, y] == '.')
+                {
+                    stack.Push((x + 1, y, steps - 1));
+                }
+
+                // Move Left
+                if (y - 1 >= 0 && map[x, y - 1] == '.')
+                {
+                    stack.Push((x, y - 1, steps - 1));
+                }
+
+                // Move Right
+                if (y + 1 < map.GetLength(1) && map[x, y + 1] == '.')
+                {
+                    stack.Push((x, y + 1, steps - 1));
+                }
+
+                memo[(x, y, steps)] = uniqueFields;
+                visited.UnionWith(uniqueFields);
+            }
+
+            return visited;
+        }
+
+        internal static char[,] Create3x3Map(char[,] inputMap)
+        {
+            int inputX = inputMap.GetLength(0);
+            int inputY = inputMap.GetLength(1);
+            int newX = inputX * 3;
+            int newY = inputY * 3;
+
+            char[,] newMap = new char[newX, newY];
+
+            for (int i = 0; i < newX; i++)
+            {
+                for (int j = 0; j < newY; j++)
+                {
+                    // Calculate the corresponding position in the original map
+                    int inputRow = i % inputX;
+                    int inputCol = j % inputY;
+
+                    // Copy the value from the original map, replacing 'S' if necessary
+                    if (inputMap[inputRow, inputCol] == 'S')
+                    {
+                        // Place 'S' in the middle grid, '.' in other grids
+                        newMap[i, j] = (i / inputX == 1 && j / inputY == 1) ? 'S' : '.';
+                    }
+                    else
+                    {
+                        newMap[i, j] = inputMap[inputRow, inputCol];
+                    }
+                }
+            }
+
+            return newMap;
         }
     }
 }
