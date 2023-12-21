@@ -999,7 +999,7 @@ namespace advent2023
         }
 
 
-        internal static HashSet<(int, int)> GetVisitedPositionsIterative(int currentX, int currentY, int stepsLeft, ref Dictionary<(int, int, int), HashSet<(int, int)>> memo, char[,] map)
+        internal static HashSet<(int, int)> GetVisitedPositions(int currentX, int currentY, int stepsLeft, ref Dictionary<(int, int, int), HashSet<(int, int)>> memo, char[,] map)
         {
             var stack = new Stack<(int x, int y, int steps)>();
             var visited = new HashSet<(int, int)>();
@@ -1085,6 +1085,193 @@ namespace advent2023
             }
 
             return newMap;
+        }
+
+        public enum Direction
+        {
+            Up,
+            Down,
+            Left,
+            Right,
+            Invalid
+        }
+        internal static Direction CanEnter(Direction comingFrom, char candidate)
+        {
+            // │ └ ┐┌ ┘ ─;
+            // 0 down, 1 up, 2 left, 3 right
+
+            if (comingFrom == Direction.Down)
+            {
+                if (candidate == '│')
+                {
+                    return Direction.Up;
+                }
+                else if (candidate == '┐')
+                {
+                    return Direction.Left;
+                }
+                else if (candidate == '┌')
+                {
+                    return Direction.Right;
+                }
+                else
+                {
+                    return Direction.Invalid;
+                }
+
+            }
+            else if (comingFrom == Direction.Up)
+            {
+                if (candidate == '│')
+                {
+                    return Direction.Down;
+                }
+                else if (candidate == '┘')
+                {
+                    return Direction.Left;
+                }
+                else if (candidate == '└')
+                {
+                    return Direction.Right;
+                }
+                else
+                {
+                    return Direction.Invalid;
+                }
+            }
+            else if (comingFrom == Direction.Left)
+            {
+                if (candidate == '┘')
+                {
+                    return Direction.Up;
+                }
+                else if (candidate == '┐')
+                {
+                    return Direction.Down;
+                }
+                else if (candidate == '─')
+                {
+                    return Direction.Right;
+                }
+                else
+                {
+                    return Direction.Invalid;
+                }
+            }
+            else if (comingFrom == Direction.Right)
+            {
+                if (candidate == '└')
+                {
+                    return Direction.Up;
+                }
+                else if (candidate == '┌')
+                {
+                    return Direction.Down;
+                }
+                else if (candidate == '─')
+                {
+                    return Direction.Left;
+                }
+                else
+                {
+                    return Direction.Invalid;
+                }
+            }
+            return Direction.Invalid;
+        }
+        internal static (int x, int y, int maxDistance) FindFurthestPointFromStart(int startX, int startY, char[,] map)
+        {
+
+            int mapX = map.GetLength(0);
+            int mapY = map.GetLength(1);
+            Direction firstMove = FindFirstMove(startX, startY, map);
+            bool[,] visited = new bool[mapX, mapY];
+            Queue<(int x, int y, int distance)> queue = new Queue<(int, int, int)>();
+            queue.Enqueue((startX, startY, 0));
+            visited[startX, startY] = true;
+            (int x, int y) furthestPoint = (startX, startY);
+            int maxDistance = 0;
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                int x = current.Item1;
+                int y = current.Item2;
+                int distance = current.Item3;
+
+                if (distance > maxDistance)
+                {
+                    maxDistance = distance;
+                    furthestPoint = (x, y);
+                }
+                // Explore all four directions
+                CheckAndEnqueue(x - 1, y, Direction.Down, distance + 1, map, visited, queue); // Up
+                CheckAndEnqueue(x + 1, y, Direction.Up, distance + 1, map, visited, queue);   // Down
+                CheckAndEnqueue(x, y - 1, Direction.Right, distance + 1, map, visited, queue); // Left
+                CheckAndEnqueue(x, y + 1, Direction.Left, distance + 1, map, visited, queue);  // Right
+            }
+            return (furthestPoint.x, furthestPoint.y, maxDistance);
+        }
+
+        private static void CheckAndEnqueue(int x, int y, Direction comingFrom, int distance, char[,] map, bool[,] visited, Queue<(int, int, int)> queue)
+        {
+            int mapX = map.GetLength(0);
+            int mapY = map.GetLength(1);
+
+            if (x >= 0 && x < mapX && y >= 0 && y < mapY && !visited[x, y])
+            {
+                char candidate = map[x, y];
+                Direction move = CanEnter(comingFrom, candidate);
+
+                if (move != Direction.Invalid)
+                {
+                    queue.Enqueue((x, y, distance));
+                    visited[x, y] = true;
+                }
+            }
+        }
+
+        private static Direction FindFirstMove(int startX, int startY, char[,] map)
+        {
+            char candidate;
+            Direction firstMove = Direction.Invalid;
+            int mapX = map.GetLength(0);
+            int mapY = map.GetLength(1);
+            if (startX > 0)
+            {
+                //check Up
+                candidate = map[startX - 1, startY];
+                firstMove = CanEnter(Direction.Down, candidate);
+                if (firstMove != Direction.Invalid)
+                    return firstMove;
+            }
+            if (startY < mapY)
+            {
+                //check Right
+                candidate = map[startX, startY + 1];
+                firstMove = CanEnter(Direction.Left, candidate);
+                if (firstMove != Direction.Invalid)
+                    return firstMove;
+            }
+
+            if (startY > 0)
+            {
+                //check Left
+                candidate = map[startX, startY - 1];
+                firstMove = CanEnter(Direction.Right, candidate);
+                if (firstMove != Direction.Invalid)
+                    return firstMove;
+            }
+
+            if (startX < mapX)
+            {
+                //check Down
+                candidate = map[startX + 1, startY];
+                firstMove = CanEnter(Direction.Right, candidate);
+                if (firstMove != Direction.Invalid)
+                    return firstMove;
+            }
+
+            return firstMove;
         }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using System.CodeDom;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
@@ -41,7 +42,7 @@ namespace advent2023
             //Day8_Star2();
             //Day9_Star1();
             //Day9_Star2();
-            //Day10_Star1();
+            Day10_Star1();
             //Day18_Star1();
             //Day18_Star2();
             //Day19_Star1();
@@ -49,7 +50,7 @@ namespace advent2023
             //Day20_Star1();
             //Day20_Star2();
             //Day21_Star1();
-            Day21_Star2();
+            //Day21_Star2();
 
             ExitConsole();
         }
@@ -689,17 +690,38 @@ namespace advent2023
 
         private static void Day10_Star1()
         {
-            //var textFile = @"C:\aoc\2023\day10\test.txt";
+            //var textFile = @"C:\aoc\2023\day10\test1.txt";
+            //var textFile = @"C:\aoc\2023\day10\test2.txt";
             var textFile = @"C:\aoc\2023\day10\input.txt";
             string file = File.ReadAllText(textFile);
-            file = file.Replace('7', '┐').Replace('|', '│').Replace('L', '└').Replace('F', '┌').Replace('J', '┘').Replace('-', '─');
-            string[] lines = file.Split('\n');
-            foreach (string line in lines)
+            file = file.Replace('7', '┐').Replace('|', '│').Replace('L', '└').Replace('F', '┌').Replace('J', '┘').Replace('-', '─').Trim();
+            //file = file.Trim();
+            string[] lines = file.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+            int mapX = lines[0].Length;
+            int mapY = lines.Count();
+            char[,] map = new char[mapX, mapY];
+            int startX = 0;
+            int startY = 0;
+            for (int i = 0; i < mapY; i++)
             {
-                Console.WriteLine(line);
+                string line = lines[i];
+                for (int j = 0; j < mapX; j++)
+                {
+                    map[i, j] = line[j];
+                    if (map[i, j] == 'S')
+                    {
+                        startX = i;
+                        startY = j;
+                        //map[i, j] = '.';
+                    }
+                }
             }
+            PrintMap(map);
+            Console.WriteLine();
+            (int,int,int) furthestPoint = FindFurthestPointFromStart(startX, startY, map);
 
-            Console.WriteLine("10*1 -- ");
+
+            Console.WriteLine("10*1 -- " + furthestPoint.Item3);
         }
 
         private static void Day18_Star1()
@@ -1294,7 +1316,7 @@ namespace advent2023
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             Dictionary<(int, int, int), HashSet<(int, int)>> memo = new Dictionary<(int, int, int), HashSet<(int, int)>>();
-            HashSet<(int, int)> visitedPositions = GetVisitedPositionsIterative(startX, startY, totalSteps, ref memo, map);
+            HashSet<(int, int)> visitedPositions = GetVisitedPositions(startX, startY, totalSteps, ref memo, map);
             stopwatch.Stop();
 
             Console.WriteLine("21*1 -- " + visitedPositions.Count + " -- " + stopwatch.Elapsed.TotalSeconds.ToString(".0#"));
@@ -1336,14 +1358,14 @@ namespace advent2023
 
             List<int> sequence = new List<int>();
 
-            //f(n), f(n + X) and f(n + 2X)
+            //get f(n), f(n + X) and f(n + 2X)
             for (int n = 0; n < 3; n++)
             {
-                int totalSteps = n* lines[0].Length + rem;
+                int totalSteps = n * lines[0].Length + rem;
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
                 Dictionary<(int, int, int), HashSet<(int, int)>> memo = new Dictionary<(int, int, int), HashSet<(int, int)>>();
-                HashSet<(int, int)> visitedPositions = GetVisitedPositionsIterative(startX, startY, totalSteps, ref memo, map);
+                HashSet<(int, int)> visitedPositions = GetVisitedPositions(startX, startY, totalSteps, ref memo, map);
                 stopwatch.Stop();
                 Console.WriteLine("22*2 -" + n + "- " + visitedPositions.Count + " -- " + stopwatch.Elapsed.TotalSeconds.ToString(".0#"));
                 sequence.Add(visitedPositions.Count());
@@ -1366,10 +1388,30 @@ namespace advent2023
                 }
 
             }
+
             // 22 * 2 - 0 - 3941-- .07
             // 22 * 2 - 1 - 35259-- 4.27
             // 22 * 2 - 2 - 97807-- 41.33
 
+            //https://github.com/jmg48/AdventOfCode2023/blob/master/AdventOfCode2023/Day21.cs
+            // Solve for the quadratic coefficients
+            var c = sequence[0];
+            var aPlusB = sequence[1] - c;
+            var fourAPlusTwoB = sequence[2] - c;
+            var twoA = fourAPlusTwoB - (2 * aPlusB);
+            var a = twoA / 2;
+            var b = aPlusB - a;
+
+            long F(long n)
+            {
+                return a * (n * n) + b * n + c;
+            }
+
+            for (var i = 0; i < sequence.Count; i++)
+            {
+                Console.WriteLine($"{sequence[i]} : {F(i)}");
+            }
+            Console.WriteLine(F(grids));
         }
         private static void ExitConsole()
         {
