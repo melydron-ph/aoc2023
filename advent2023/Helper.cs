@@ -1498,5 +1498,23 @@ namespace advent2023
 
         }
 
+        internal static int HashString(string input)
+        {
+            int currentValue = 0;
+
+            foreach (char c in input)
+            {
+                int asciiCode = (int)c;
+
+                currentValue += asciiCode;
+
+                currentValue *= 17;
+
+                currentValue %= 256;
+            }
+
+            return currentValue;
+        }
+
     }
 }

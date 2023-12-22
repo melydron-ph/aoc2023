@@ -44,6 +44,8 @@ namespace advent2023
             //Day9_Star2();
             //Day10_Star1();
             //Day10_Star2();
+            Day15_Star1();
+            Day15_Star2();
             //Day18_Star1();
             //Day18_Star2();
             //Day19_Star1();
@@ -52,8 +54,8 @@ namespace advent2023
             //Day20_Star2();
             //Day21_Star1();
             //Day21_Star2();
-            Day22_Star1();
-            Day22_Star2();
+            //Day22_Star1();
+            //Day22_Star2();
             ExitConsole();
         }
 
@@ -760,6 +762,35 @@ namespace advent2023
             double result = polygonArea + mapPath.Count() / 2 + 1 - mapPath.Count();
 
             Console.WriteLine("10*2 -- " + result);
+
+        }
+
+        private static void Day15_Star1()
+        {
+            //var textFile = @"C:\aoc\2023\day15\test.txt";
+            var textFile = @"C:\aoc\2023\day15\input.txt";
+            string file = File.ReadAllText(textFile).Trim();
+            string[] steps = file.Split(',');
+            int total = 0;
+            int[] results = new int[steps.Length];
+            int i = 0;
+            foreach(string step in steps)
+            {
+                int stepHashed = HashString(step);
+                results[i++] = stepHashed;
+            }
+            Array.ForEach(results, value => total += value);
+            Console.WriteLine("15*1 -- " + total);
+        }
+
+
+        private static void Day15_Star2()
+        {
+            var textFile = @"C:\aoc\2023\day15\test.txt";
+            //var textFile = @"C:\aoc\2023\day15\input.txt";
+            string file = File.ReadAllText(textFile);
+
+            Console.WriteLine("15*2 -- " );
 
         }
         private static void Day18_Star1()
