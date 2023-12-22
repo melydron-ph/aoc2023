@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
+using System.Drawing.Printing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -13,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.Schema;
+using static advent2023.Helper;
 
 namespace advent2023
 {
@@ -1318,5 +1320,203 @@ namespace advent2023
             return path;
 
         }
+
+
+        public class Point3D
+        {
+            public int X { get; set; }
+            public int Y { get; set; }
+            public int Z { get; set; }
+
+            public Point3D(int x, int y, int z)
+            {
+                X = x;
+                Y = y;
+                Z = z;
+            }
+            public override string ToString()
+            {
+                return $"({X}, {Y}, {Z})";
+            }
+        }
+
+        public class Brick
+        {
+            public string Snapshot { get; set; }
+            public Point3D CurrentStart { get; set; }
+            public Point3D CurrentEnd { get; set; }
+
+            public bool Falling { get; set; }
+
+            public List<Brick> SupportingBricks { get; set; }
+            public List<Brick> SupportedByBricks { get; set; }
+
+            public Brick(string snapshot)
+            {
+                Snapshot = snapshot;
+                string[] brickPositions = Snapshot.Split('~');
+                string[] brickPosition1 = brickPositions[0].Split(',');
+                string[] brickPosition2 = brickPositions[1].Split(',');
+                CurrentStart = new Point3D(int.Parse(brickPosition1[0]), int.Parse(brickPosition1[1]), int.Parse(brickPosition1[2]));
+                CurrentEnd = new Point3D(int.Parse(brickPosition2[0]), int.Parse(brickPosition2[1]), int.Parse(brickPosition2[2]));
+                SupportingBricks = new List<Brick>();
+                SupportedByBricks = new List<Brick>();
+                Falling = true;
+            }
+
+            public void DropBrick(List<Brick> placedBricks)
+            {
+                foreach (var brick in placedBricks)
+                {
+                    int brickBotZ = Math.Min(CurrentStart.Z, CurrentEnd.Z);
+                    int candidateBotZ = Math.Max(brick.CurrentStart.Z, brick.CurrentEnd.Z);
+
+                    if (brickBotZ == candidateBotZ)
+                    {
+                        int brickTopZ = BricksCollide(this, brick);
+                        if (brickTopZ > 0)
+                        {
+                            Falling = false;
+                            int height = Math.Abs(CurrentStart.Z - CurrentEnd.Z);
+                            CurrentStart.Z = brickTopZ + 1;
+                            CurrentEnd.Z = height + brickTopZ + 1;
+                            placedBricks.Add(this);
+                            return;
+                        }
+                    }
+                }
+                if (Falling)
+                {
+                    CurrentStart.Z -= 1;
+                    CurrentEnd.Z -= 1;
+                }
+                int minZ = Math.Min(CurrentStart.Z, CurrentEnd.Z);
+                if (minZ == 0)
+                {
+                    CurrentStart.Z += 1;
+                    CurrentEnd.Z += 1;
+                    Falling = false;
+                    placedBricks.Add(this);
+                    return;
+                }
+            }
+
+            private int BricksCollide(Brick brick1, Brick brick2)
+            {
+                // First check all bricks supported by Brick2
+                // These supportedBricks are ordered by their Z descending, so we check from top to bottom and if we find a match we land on that brick
+                bool overlapsInX;
+                bool overlapsInY;
+                //foreach (var brick in brick2.SupportingBricks) {
+                //    // Check if brick1 is within the X and Y range of supportedBrick
+                //    overlapsInX = brick1.CurrentStart.X <= brick.CurrentEnd.X && brick1.CurrentEnd.X >= brick.CurrentStart.X;
+                //    overlapsInY = brick1.CurrentStart.Y <= brick.CurrentEnd.Y && brick1.CurrentEnd.Y >= brick.CurrentStart.Y;
+                //    if (overlapsInX && overlapsInY)
+                //    {
+                //        //brick1.Falling = false;
+                //        //brick.SupportingBricks.Add(brick1);
+                //        //brick.SupportingBricks.OrderBy(b => Math.Max(b.CurrentStart.Z, b.CurrentEnd.Z)).ToList();
+                //        int brickTopZ = Math.Max(brick2.CurrentStart.Z, brick2.CurrentEnd.Z);
+                //        return brickTopZ;
+                //    }
+                //}
+
+                // Check if brick1 is within the X and Y range of brick2
+                overlapsInX = brick1.CurrentStart.X <= brick2.CurrentEnd.X && brick1.CurrentEnd.X >= brick2.CurrentStart.X;
+                overlapsInY = brick1.CurrentStart.Y <= brick2.CurrentEnd.Y && brick1.CurrentEnd.Y >= brick2.CurrentStart.Y;
+                int brick2TopZ = Math.Max(brick2.CurrentStart.Z, brick2.CurrentEnd.Z);
+                return overlapsInX && overlapsInY ? brick2TopZ : -1;
+            }
+
+            public override string ToString()
+            {
+                string status = Falling ? "Falling" : "Landed";
+                return $"{Snapshot} => [Start: {CurrentStart}] , [End: {CurrentEnd}] -- {status}";
+            }
+
+            internal void AddSupportingBricks(List<Brick> placedBricks)
+            {
+                int topZ = Math.Max(CurrentStart.Z, CurrentEnd.Z);
+                foreach (Brick b in placedBricks)
+                {
+                    if (b == this) continue;
+
+                    int brickBotZ = Math.Min(b.CurrentStart.Z, b.CurrentEnd.Z);
+                    if (brickBotZ == topZ + 1)
+                    {
+                        if (BricksCollide(this, b) > 0)
+                        {
+                            SupportingBricks.Add(b);
+                            b.SupportedByBricks.Add(this);
+                        }
+                    }
+                }
+            }
+
+            public string PrintSupportingBricks()
+            {
+                if (SupportingBricks.Count == 0)
+                {
+                    return $"{Snapshot} is supporting: None";
+                }
+                var supportingSnapshots = SupportingBricks.Select(brick => brick.Snapshot);
+                return $"{Snapshot} is supporting: {string.Join(", ", supportingSnapshots)}";
+            }
+
+            public string PrintSupportedByBricks()
+            {
+                if (SupportedByBricks.Count == 0)
+                {
+                    return $"{Snapshot} is supported by: None";
+                }
+                var supportedBySnapshots = SupportedByBricks.Select(brick => brick.Snapshot);
+                return $"{Snapshot} is supportedBy: {string.Join(", ", supportedBySnapshots)}";
+            }
+
+            private void CountFallingBricks(Brick brick, HashSet<Brick> fallingBricks)
+            {
+                foreach (var supportedBrick in brick.SupportingBricks)
+                {
+                    // Check if this supported brick has no other supports
+                    if (supportedBrick.SupportedByBricks.Count() == 1)
+                    {
+                        supportedBrick.Falling = true;
+                        if (fallingBricks.Add(supportedBrick))
+                        {
+                            CountFallingBricks(supportedBrick, fallingBricks);
+                        }
+                    }
+                    else
+                    {
+                        int falling = 0;
+                        foreach(Brick supporterBrick in supportedBrick.SupportedByBricks)
+                        {
+                            if (supporterBrick.Falling)
+                            {
+                                falling++;
+                            }
+                        }
+                        if (falling == supportedBrick.SupportedByBricks.Count())
+                        {
+                            supportedBrick.Falling = true;
+                            if (fallingBricks.Add(supportedBrick))
+                            {
+                                CountFallingBricks(supportedBrick, fallingBricks);
+                            }
+                        }
+                    }
+                }
+            }
+
+            public int CalculateFallingBricks()
+            {
+                Falling = true;
+                HashSet<Brick> fallingBricks = new HashSet<Brick>();
+                CountFallingBricks(this, fallingBricks);
+                return fallingBricks.Count;
+            }
+
+        }
+
     }
 }

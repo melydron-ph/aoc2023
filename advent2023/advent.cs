@@ -43,7 +43,7 @@ namespace advent2023
             //Day9_Star1();
             //Day9_Star2();
             //Day10_Star1();
-            Day10_Star2();
+            //Day10_Star2();
             //Day18_Star1();
             //Day18_Star2();
             //Day19_Star1();
@@ -52,7 +52,8 @@ namespace advent2023
             //Day20_Star2();
             //Day21_Star1();
             //Day21_Star2();
-
+            //Day22_Star1();
+            Day22_Star2();
             ExitConsole();
         }
 
@@ -756,7 +757,7 @@ namespace advent2023
 
             double polygonArea = CalculateArea(mapPath);
 
-            double result = polygonArea + mapPath.Count() / 2 + 1 - mapPath.Count() ;
+            double result = polygonArea + mapPath.Count() / 2 + 1 - mapPath.Count();
 
             Console.WriteLine("10*2 -- " + result);
 
@@ -1450,6 +1451,136 @@ namespace advent2023
             }
             Console.WriteLine(F(grids));
         }
+
+        private static void Day22_Star1()
+        {
+            //var textFile = @"C:\aoc\2023\day22\test.txt";
+            var textFile = @"C:\aoc\2023\day22\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            List<Brick> bricks = new List<Brick>();
+
+            foreach (string line in lines)
+            {
+                Brick b = new Brick(line);
+                bricks.Add(b);
+            }
+
+            var sortedBricks = bricks.OrderBy(brick => Math.Min(brick.CurrentStart.Z, brick.CurrentEnd.Z)).ToList();
+
+            int time = 0;
+            List<Brick> placedBricks = new List<Brick>();
+            while (true)
+            {
+                placedBricks.OrderBy(b => Math.Max(b.CurrentStart.Z, b.CurrentEnd.Z)).ToList();
+                foreach (Brick b in sortedBricks)
+                {
+                    if (b.Falling)
+                    {
+                        b.DropBrick(placedBricks);
+                    }
+                }
+                if (sortedBricks.Count() == placedBricks.Count())
+                {
+                    break;
+                }
+            }
+            foreach (Brick b in placedBricks)
+            {
+                b.AddSupportingBricks(placedBricks);
+            }
+
+            int total = 0;
+            foreach (Brick b in placedBricks)
+            {
+                bool safeToDelete = true;
+                foreach (Brick supportingBrick in b.SupportingBricks)
+                {
+                    if (supportingBrick.SupportedByBricks.Count() == 1)
+                    {
+                        safeToDelete = false;
+                        break;
+                    }
+                }
+                if (safeToDelete)
+                {
+                    total++;
+                }
+            }
+
+            Console.WriteLine($"22*1 -- {total}");
+        }
+
+        private static void Day22_Star2()
+        {
+            //var textFile = @"C:\aoc\2023\day22\test.txt";
+            var textFile = @"C:\aoc\2023\day22\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            List<Brick> bricks = new List<Brick>();
+
+            foreach (string line in lines)
+            {
+                Brick b = new Brick(line);
+                bricks.Add(b);
+            }
+
+            var sortedBricks = bricks.OrderBy(brick => Math.Min(brick.CurrentStart.Z, brick.CurrentEnd.Z)).ToList();
+
+            int time = 0;
+            List<Brick> placedBricks = new List<Brick>();
+            while (true)
+            {
+                placedBricks.OrderBy(b => Math.Max(b.CurrentStart.Z, b.CurrentEnd.Z)).ToList();
+                foreach (Brick b in sortedBricks)
+                {
+                    if (b.Falling)
+                    {
+                        b.DropBrick(placedBricks);
+                    }
+                }
+                if (sortedBricks.Count() == placedBricks.Count())
+                {
+                    break;
+                }
+            }
+            foreach (Brick b in placedBricks)
+            {
+                b.AddSupportingBricks(placedBricks);
+            }
+
+            int total = 0;
+            List<Brick> unsafeToRemoveBricks = new List<Brick>();
+            foreach (Brick b in placedBricks)
+            {
+                bool safeToRemove = true;
+                foreach (Brick supportingBrick in b.SupportingBricks)
+                {
+                    if (supportingBrick.SupportedByBricks.Count() == 1)
+                    {
+                        safeToRemove = false;
+                        unsafeToRemoveBricks.Add(b);
+                        break;
+                    }
+                }
+                if (safeToRemove)
+                {
+                    total++;
+                }
+            }
+
+            total = 0;
+            foreach (Brick b in unsafeToRemoveBricks)
+            {
+                int fallingBricks = b.CalculateFallingBricks();
+                total += fallingBricks;
+                foreach(Brick br in placedBricks)
+                {
+                    br.Falling = false;
+                }
+            }
+
+            Console.WriteLine($"22*2 -- {total}");
+        }
+
         private static void ExitConsole()
         {
             Console.WriteLine("\n\nPress any key to close console.");
