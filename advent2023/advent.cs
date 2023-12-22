@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
+using System.Diagnostics.SymbolStore;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Runtime.ExceptionServices;
 using System.Runtime.Remoting.Contexts;
 using System.Runtime.Versioning;
@@ -44,8 +46,10 @@ namespace advent2023
             //Day9_Star2();
             //Day10_Star1();
             //Day10_Star2();
-            Day15_Star1();
-            Day15_Star2();
+            Day11_Star1();
+            Day11_Star2();
+            //Day15_Star1();
+            //Day15_Star2();
             //Day18_Star1();
             //Day18_Star2();
             //Day19_Star1();
@@ -765,6 +769,127 @@ namespace advent2023
 
         }
 
+        private static void Day11_Star1()
+        {
+            //var textFile = @"C:\aoc\2023\day11\test.txt";
+            var textFile = @"C:\aoc\2023\day11\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            List<Point> galaxies = new List<Point>();
+            int mapX = lines[0].Length;
+            int mapY = lines.Count();
+            char[,] map = new char[mapX, mapY];
+            List<int> rowsWithoutGalaxy = new List<int>();
+            List<int> colsWithoutGalaxy = new List<int>();
+            int galaxyNum = 1;
+            Dictionary<Point, int> galaxiesDictionary = new Dictionary<Point, int>();
+            for (int i = 0; i < mapY; i++)
+            {
+                string line = lines[i];
+                if (!line.Contains('#'))
+                    rowsWithoutGalaxy.Add(i);
+                for (int j = 0; j < mapX; j++)
+                {
+                    map[i, j] = line[j];
+                    if (map[i, j] == '#')
+                    {
+                        Point galaxy = new Point(i, j);
+                        galaxies.Add(galaxy);
+                        galaxiesDictionary.Add(galaxy, galaxyNum++);
+                    }
+                }
+            }
+
+            for (int j = 0; j < mapX; j++)
+            {
+                bool galaxyFound = false;
+                for (int i = 0; i < mapY; i++)
+                {
+                    if (map[i, j] == '#')
+                    {
+                        galaxyFound = true;
+                        break;
+                    }
+                }
+                if (!galaxyFound)
+                {
+                    colsWithoutGalaxy.Add(j);
+                }
+            }
+            List<Tuple<Point, Point>> pairs = GeneratePairs(galaxies);
+            int total = 0;
+            foreach (Tuple<Point, Point> pair in pairs)
+            {
+
+                (int, int) extraDistance = FindExtraDistance(pair.Item1, pair.Item2, rowsWithoutGalaxy, colsWithoutGalaxy);
+                int distance = FindShortestPath(pair.Item1, pair.Item2, extraDistance);
+                total += distance;
+                //Console.WriteLine($"Distance between {galaxiesDictionary[pair.Item1]} - {galaxiesDictionary[pair.Item2]} : {distance}");
+            }
+
+            Console.WriteLine("11*1 -- " + total);
+        }
+
+        private static void Day11_Star2()
+        {
+            //var textFile = @"C:\aoc\2023\day11\test.txt";
+            var textFile = @"C:\aoc\2023\day11\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            List<Point> galaxies = new List<Point>();
+            int mapX = lines[0].Length;
+            int mapY = lines.Count();
+            char[,] map = new char[mapX, mapY];
+            List<int> rowsWithoutGalaxy = new List<int>();
+            List<int> colsWithoutGalaxy = new List<int>();
+            int galaxyNum = 1;
+            Dictionary<Point, int> galaxiesDictionary = new Dictionary<Point, int>();
+            for (int i = 0; i < mapY; i++)
+            {
+                string line = lines[i];
+                if (!line.Contains('#'))
+                    rowsWithoutGalaxy.Add(i);
+                for (int j = 0; j < mapX; j++)
+                {
+                    map[i, j] = line[j];
+                    if (map[i, j] == '#')
+                    {
+                        Point galaxy = new Point(i, j);
+                        galaxies.Add(galaxy);
+                        galaxiesDictionary.Add(galaxy, galaxyNum++);
+                    }
+                }
+            }
+
+            for (int j = 0; j < mapX; j++)
+            {
+                bool galaxyFound = false;
+                for (int i = 0; i < mapY; i++)
+                {
+                    if (map[i, j] == '#')
+                    {
+                        galaxyFound = true;
+                        break;
+                    }
+                }
+                if (!galaxyFound)
+                {
+                    colsWithoutGalaxy.Add(j);
+                }
+            }
+            List<Tuple<Point, Point>> pairs = GeneratePairs(galaxies);
+            long total = 0;
+            foreach (Tuple<Point, Point> pair in pairs)
+            {
+
+                (long, long) extraDistance = FindExtraDistanceMultiple(pair.Item1, pair.Item2, rowsWithoutGalaxy, colsWithoutGalaxy);
+                long distance = FindShortestPathMultiple(pair.Item1, pair.Item2, extraDistance);
+                total += distance;
+                //Console.WriteLine($"Distance between {galaxiesDictionary[pair.Item1]} - {galaxiesDictionary[pair.Item2]} : {distance}");
+            }
+
+            Console.WriteLine($"int max value: {int.MaxValue}");
+            Console.WriteLine("11*2 -- " + total);
+        }
+
         private static void Day15_Star1()
         {
             //var textFile = @"C:\aoc\2023\day15\test.txt";
@@ -774,7 +899,7 @@ namespace advent2023
             int total = 0;
             int[] results = new int[steps.Length];
             int i = 0;
-            foreach(string step in steps)
+            foreach (string step in steps)
             {
                 int stepHashed = HashString(step);
                 results[i++] = stepHashed;
@@ -786,11 +911,62 @@ namespace advent2023
 
         private static void Day15_Star2()
         {
-            var textFile = @"C:\aoc\2023\day15\test.txt";
-            //var textFile = @"C:\aoc\2023\day15\input.txt";
+            //var textFile = @"C:\aoc\2023\day15\test.txt";
+            var textFile = @"C:\aoc\2023\day15\input.txt";
             string file = File.ReadAllText(textFile);
+            string[] steps = file.Split(',');
+            List<(string, char, int)> operations = new List<(string, char, int)>();
+            Dictionary<int, List<(string, int)>> boxes = new Dictionary<int, List<(string, int)>>();
+            for (int i = 0; i < 256; i++)
+            {
+                boxes[i] = new List<(string, int)>();
+            }
+            foreach (string step in steps)
+            {
+                if (step.Contains('='))
+                {
+                    string[] stepParts = step.Split('=');
+                    string label = stepParts[0];
+                    int value = int.Parse(stepParts[1]);
+                    int boxNum = HashString(label);
+                    bool lenseFound = false;
+                    List<(string, int)> lenseBox = boxes[boxNum];
+                    for (int i = 0; i < lenseBox.Count(); i++)
+                    {
+                        if (lenseBox[i].Item1 == label)
+                        {
+                            lenseBox[i] = (label, value);
+                            lenseFound = true;
+                        }
+                    }
+                    if (!lenseFound)
+                    {
+                        lenseBox.Add((label, value));
+                    }
+                }
+                else
+                {
+                    string[] stepParts = step.Split('-');
+                    string label = stepParts[0];
+                    int boxNum = HashString(label);
+                    List<(string, int)> lenseBox = boxes[boxNum];
+                    lenseBox.RemoveAll(item => item.Item1 == label);
+                }
+            }
 
-            Console.WriteLine("15*2 -- " );
+            int total = 0;
+            for (int i = 0; i < 256; i++)
+            {
+                List<(string, int)> lenseBox = boxes[i];
+                int boxSum = 0;
+                for (int j = 0; j < lenseBox.Count(); j++)
+                {
+                    int focalLength = lenseBox[j].Item2;
+                    boxSum += focalLength * (j + 1);
+                }
+                total += boxSum * (i + 1);
+            }
+            Console.WriteLine("15*2 -- " + total);
 
         }
         private static void Day18_Star1()
@@ -1603,7 +1779,7 @@ namespace advent2023
             {
                 int fallingBricks = b.CalculateFallingBricks();
                 total += fallingBricks;
-                foreach(Brick br in placedBricks)
+                foreach (Brick br in placedBricks)
                 {
                     br.Falling = false;
                 }

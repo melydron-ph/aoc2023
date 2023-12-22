@@ -1469,7 +1469,7 @@ namespace advent2023
                     else
                     {
                         int falling = 0;
-                        foreach(Brick supporterBrick in supportedBrick.SupportedByBricks)
+                        foreach (Brick supporterBrick in supportedBrick.SupportedByBricks)
                         {
                             if (supporterBrick.Falling)
                             {
@@ -1501,20 +1501,139 @@ namespace advent2023
         internal static int HashString(string input)
         {
             int currentValue = 0;
-
             foreach (char c in input)
             {
                 int asciiCode = (int)c;
-
                 currentValue += asciiCode;
-
                 currentValue *= 17;
-
                 currentValue %= 256;
             }
-
             return currentValue;
         }
 
+        internal static List<Tuple<Point, Point>> GeneratePairs(List<Point> points)
+        {
+            var pairs = new List<Tuple<Point, Point>>();
+            for (int i = 0; i < points.Count; i++)
+            {
+                for (int j = i + 1; j < points.Count; j++)
+                {
+                    pairs.Add(new Tuple<Point, Point>(points[i], points[j]));
+                }
+            }
+            return pairs;
+        }
+
+        internal static int FindShortestPath(Point start, Point end, (int,int) extraDistance)
+        {
+            int xDistance = Math.Abs(end.X - start.X) + extraDistance.Item1;
+            int yDistance = Math.Abs(end.Y - start.Y) + extraDistance.Item2;
+            int totalDistance = xDistance + yDistance;
+            return totalDistance;
+        }
+
+        internal static (int, int) FindExtraDistance(Point start, Point end, List<int> rowsWithoutGalaxy, List<int> colsWithoutGalaxy)
+        {
+            int extraYDistance = 0;
+            if (start.X < end.X)
+            {
+                for (int i = start.X + 1; i < end.X; i++)
+                {
+                    if (rowsWithoutGalaxy.Contains(i))
+                    {
+                        extraYDistance++;
+                    }
+                }
+            }
+            else if (start.X > end.X)
+            {
+                for (int i = end.X + 1; i < start.X; i++)
+                {
+                    if (rowsWithoutGalaxy.Contains(i))
+                    {
+                        extraYDistance++;
+                    }
+                }
+            }
+
+            int extraXDistance = 0;
+            if (start.Y < end.Y)
+            {
+                for (int i = start.Y + 1; i < end.Y; i++)
+                {
+                    if (colsWithoutGalaxy.Contains(i))
+                    {
+                        extraXDistance++;
+                    }
+                }
+            }
+            else if (start.Y > end.Y)
+            {
+                for (int i = end.Y + 1; i < start.Y; i++)
+                {
+                    if (colsWithoutGalaxy.Contains(i))
+                    {
+                        extraXDistance++;
+                    }
+                }
+            }
+
+            return (extraXDistance, extraYDistance);
+        }
+        internal static long FindShortestPathMultiple(Point start, Point end, (long, long) extraDistance)
+        {
+            long xDistance = Math.Abs(end.X - start.X) + extraDistance.Item1;
+            long yDistance = Math.Abs(end.Y - start.Y) + extraDistance.Item2;
+            long totalDistance = xDistance + yDistance;
+            return totalDistance;
+        }
+        internal static (long, long) FindExtraDistanceMultiple(Point start, Point end, List<int> rowsWithoutGalaxy, List<int> colsWithoutGalaxy, long multiple = 999999)
+        {
+            long extraYDistance = 0;
+            if (start.X < end.X)
+            {
+                for (int i = start.X + 1; i < end.X; i++)
+                {
+                    if (rowsWithoutGalaxy.Contains(i))
+                    {
+                        extraYDistance = extraYDistance + multiple;
+                    }
+                }
+            }
+            else if (start.X > end.X)
+            {
+                for (int i = end.X + 1; i < start.X; i++)
+                {
+                    if (rowsWithoutGalaxy.Contains(i))
+                    {
+                        extraYDistance = extraYDistance + multiple;
+                    }
+                }
+            }
+
+            long extraXDistance = 0;
+            if (start.Y < end.Y)
+            {
+                for (int i = start.Y + 1; i < end.Y; i++)
+                {
+                    if (colsWithoutGalaxy.Contains(i))
+                    {
+                        extraXDistance = extraXDistance + multiple;
+                    }
+                }
+            }
+            else if (start.Y > end.Y)
+            {
+                for (int i = end.Y + 1; i < start.Y; i++)
+                {
+                    if (colsWithoutGalaxy.Contains(i))
+                    {
+                        extraXDistance = extraXDistance + multiple;
+                    }
+                }
+            }
+
+            return (extraXDistance, extraYDistance);
+        }
     }
 }
