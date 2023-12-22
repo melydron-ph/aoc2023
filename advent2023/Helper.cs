@@ -1368,8 +1368,8 @@ namespace advent2023
             {
                 foreach (var brick in placedBricks)
                 {
-                    int brickBotZ = Math.Min(CurrentStart.Z, CurrentEnd.Z);
-                    int candidateBotZ = Math.Max(brick.CurrentStart.Z, brick.CurrentEnd.Z);
+                    int brickBotZ = CurrentStart.Z;
+                    int candidateBotZ = brick.CurrentEnd.Z;
 
                     if (brickBotZ == candidateBotZ)
                     {
@@ -1377,7 +1377,7 @@ namespace advent2023
                         if (brickTopZ > 0)
                         {
                             Falling = false;
-                            int height = Math.Abs(CurrentStart.Z - CurrentEnd.Z);
+                            int height = CurrentEnd.Z - CurrentStart.Z;
                             CurrentStart.Z = brickTopZ + 1;
                             CurrentEnd.Z = height + brickTopZ + 1;
                             placedBricks.Add(this);
@@ -1390,7 +1390,7 @@ namespace advent2023
                     CurrentStart.Z -= 1;
                     CurrentEnd.Z -= 1;
                 }
-                int minZ = Math.Min(CurrentStart.Z, CurrentEnd.Z);
+                int minZ = CurrentStart.Z;
                 if (minZ == 0)
                 {
                     CurrentStart.Z += 1;
@@ -1403,28 +1403,9 @@ namespace advent2023
 
             private int BricksCollide(Brick brick1, Brick brick2)
             {
-                // First check all bricks supported by Brick2
-                // These supportedBricks are ordered by their Z descending, so we check from top to bottom and if we find a match we land on that brick
-                bool overlapsInX;
-                bool overlapsInY;
-                //foreach (var brick in brick2.SupportingBricks) {
-                //    // Check if brick1 is within the X and Y range of supportedBrick
-                //    overlapsInX = brick1.CurrentStart.X <= brick.CurrentEnd.X && brick1.CurrentEnd.X >= brick.CurrentStart.X;
-                //    overlapsInY = brick1.CurrentStart.Y <= brick.CurrentEnd.Y && brick1.CurrentEnd.Y >= brick.CurrentStart.Y;
-                //    if (overlapsInX && overlapsInY)
-                //    {
-                //        //brick1.Falling = false;
-                //        //brick.SupportingBricks.Add(brick1);
-                //        //brick.SupportingBricks.OrderBy(b => Math.Max(b.CurrentStart.Z, b.CurrentEnd.Z)).ToList();
-                //        int brickTopZ = Math.Max(brick2.CurrentStart.Z, brick2.CurrentEnd.Z);
-                //        return brickTopZ;
-                //    }
-                //}
-
-                // Check if brick1 is within the X and Y range of brick2
-                overlapsInX = brick1.CurrentStart.X <= brick2.CurrentEnd.X && brick1.CurrentEnd.X >= brick2.CurrentStart.X;
-                overlapsInY = brick1.CurrentStart.Y <= brick2.CurrentEnd.Y && brick1.CurrentEnd.Y >= brick2.CurrentStart.Y;
-                int brick2TopZ = Math.Max(brick2.CurrentStart.Z, brick2.CurrentEnd.Z);
+                bool overlapsInX = brick1.CurrentStart.X <= brick2.CurrentEnd.X && brick1.CurrentEnd.X >= brick2.CurrentStart.X;
+                bool overlapsInY = brick1.CurrentStart.Y <= brick2.CurrentEnd.Y && brick1.CurrentEnd.Y >= brick2.CurrentStart.Y;
+                int brick2TopZ = brick2.CurrentEnd.Z;
                 return overlapsInX && overlapsInY ? brick2TopZ : -1;
             }
 
@@ -1436,12 +1417,12 @@ namespace advent2023
 
             internal void AddSupportingBricks(List<Brick> placedBricks)
             {
-                int topZ = Math.Max(CurrentStart.Z, CurrentEnd.Z);
+                int topZ = CurrentEnd.Z;
                 foreach (Brick b in placedBricks)
                 {
                     if (b == this) continue;
 
-                    int brickBotZ = Math.Min(b.CurrentStart.Z, b.CurrentEnd.Z);
+                    int brickBotZ = b.CurrentStart.Z;
                     if (brickBotZ == topZ + 1)
                     {
                         if (BricksCollide(this, b) > 0)
@@ -1477,7 +1458,6 @@ namespace advent2023
             {
                 foreach (var supportedBrick in brick.SupportingBricks)
                 {
-                    // Check if this supported brick has no other supports
                     if (supportedBrick.SupportedByBricks.Count() == 1)
                     {
                         supportedBrick.Falling = true;

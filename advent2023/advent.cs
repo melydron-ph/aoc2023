@@ -52,7 +52,7 @@ namespace advent2023
             //Day20_Star2();
             //Day21_Star1();
             //Day21_Star2();
-            //Day22_Star1();
+            Day22_Star1();
             Day22_Star2();
             ExitConsole();
         }
