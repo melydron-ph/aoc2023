@@ -46,8 +46,8 @@ namespace advent2023
             //Day9_Star2();
             //Day10_Star1();
             //Day10_Star2();
-            Day11_Star1();
-            Day11_Star2();
+            //Day11_Star1();
+            //Day11_Star2();
             //Day15_Star1();
             //Day15_Star2();
             //Day18_Star1();
@@ -60,6 +60,7 @@ namespace advent2023
             //Day21_Star2();
             //Day22_Star1();
             //Day22_Star2();
+            Day23_Star1();
             ExitConsole();
         }
 
@@ -1788,7 +1789,43 @@ namespace advent2023
             Console.WriteLine($"22*2 -- {total}");
         }
 
-        private static void ExitConsole()
+
+        private static void Day23_Star1()
+        {
+            var textFile = @"C:\aoc\2023\day23\test.txt";
+            //var textFile = @"C:\aoc\2023\day23\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            int mapX = lines[0].Length;
+            int mapY = lines.Count();
+            char[,] map = new char[mapX, mapY];
+            int startX = 0;
+            int startY = 0;
+            int destX = 0;
+            int destY = 0;
+            for (int i = 0; i < mapY; i++)
+            {
+                string line = lines[i];
+                for (int j = 0; j < mapX; j++)
+                {
+                    map[i, j] = line[j];
+                    if (i == 0 && map[i, j] == '.')
+                    {
+                        startX = i;
+                        startY = j;
+                    }
+                    if (i == mapY - 1 && map[i, j] == '.')
+                    {
+                        destX = i;
+                        destY = j;
+                    }
+                }
+            }
+
+            PrintMap(map);
+            Point startP = new Point(startX, startY);
+        }
+
+            private static void ExitConsole()
         {
             Console.WriteLine("\n\nPress any key to close console.");
             Console.ReadKey();

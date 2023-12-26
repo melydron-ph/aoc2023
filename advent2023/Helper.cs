@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
@@ -9,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Remoting.Messaging;
+using System.Security.Cryptography;
 using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
@@ -1524,7 +1526,7 @@ namespace advent2023
             return pairs;
         }
 
-        internal static int FindShortestPath(Point start, Point end, (int,int) extraDistance)
+        internal static int FindShortestPath(Point start, Point end, (int, int) extraDistance)
         {
             int xDistance = Math.Abs(end.X - start.X) + extraDistance.Item1;
             int yDistance = Math.Abs(end.Y - start.Y) + extraDistance.Item2;
@@ -1635,5 +1637,144 @@ namespace advent2023
 
             return (extraXDistance, extraYDistance);
         }
+
+
+        public class PathNode
+        {
+            public Point Start { get; set; }
+            public Point End { get; set; }
+
+            public int Length { get; set; }
+
+            public PathConjuction Conjuction { get; set; }
+
+            public PathNode(Point start, Point end, int length)
+            {
+                Start = start;
+                End = end;
+                Length = length;
+            }
+
+        }
+
+        public class PathConjuction
+        {
+            public Point ConjuctionPoint { get; set; }
+            public bool HasAbove;
+            public bool HasBelow;
+            public bool HasLeft;
+            public bool HasRight;
+
+            public List<PathNode> NeighborNodes { get; set; }
+
+            public PathConjuction(Point c, bool hasAbove = false, bool hasBelow = false, bool hasLeft = false, bool hasRight = false)
+            {
+                ConjuctionPoint = c;
+                HasAbove = hasAbove;
+                HasBelow = hasBelow;
+                HasLeft = hasLeft;
+                HasRight = hasRight;
+            }
+        }
+
+        internal static Dictionary<Point, PathNode> BuildGraph(char[,] map, Point startP)
+        {
+            int rows = map.GetLength(0);
+            int cols = map.GetLength(1);
+
+            Dictionary<Point, PathNode> PathNodes = new Dictionary<Point, PathNode>();
+            while (true)
+            {
+                Point end = FindNodeEndPoint(map, startP, out int length);
+                PathNode pn = new PathNode(startP, end, length);
+                PathConjuction pc = GetPathConjuction(map, end);
+                pn.Conjuction = pc;
+
+            }
+        }
+
+        private static PathConjuction GetPathConjuction(char[,] map, Point end)
+        {
+            int i = end.X;
+            int j = end.Y;
+            char c = map[i, j];
+            Direction d = new Direction();
+            Point mid = new Point();
+            bool hasAbove = false;
+            bool hasBelow = false;
+            bool hasLeft= false;
+            bool hasRight = false;
+            if (c == '>')
+            {
+                j = j = 1;
+                d = Direction.Right;
+                hasLeft = true;
+            }
+            else if (c == 'v')
+            {
+                i = i + 1;
+                d = Direction.Down;
+                hasAbove = true;
+            }
+            mid.X = i;
+            mid.Y = j;
+            int rows = map.GetLength(0);
+            int cols = map.GetLength(1);
+
+            if (i + 1 < rows && (map[i + 1, j] == 'v'))
+            {
+                hasBelow = true;
+            }
+            if (j + 1 < cols && (map[i, j + 1] == '>'))
+            {
+                hasRight = true;
+            }
+            PathConjuction pj = new PathConjuction(mid, hasAbove, hasBelow, hasLeft, hasRight);
+            return pj;
+        }
+
+        internal static Point FindNodeEndPoint(char[,] map, Point start, out int length)
+        {
+            int i = start.X;
+            int j = start.Y;
+            int rowLength = map.GetLength(0);
+            int colLength = map.GetLength(1);
+            int steps = 0;
+            while (true)
+            {
+                char c = map[i, j];
+                length = steps++;
+                switch (c)
+                {
+                    case '>':
+                        if (j + 1 < colLength && map[i, j + 1] == c)
+                            j++;
+                        else
+                            return new Point(i, j);
+                        break;
+                    case '<':
+                        if (j - 1 >= 0 && map[i, j - 1] == c)
+                            j--;
+                        else
+                            return new Point(i, j);
+                        break;
+                    case '^':
+                        if (i - 1 >= 0 && map[i - 1, j] == c)
+                            i--;
+                        else
+                            return new Point(i, j);
+                        break;
+                    case 'v':
+                        if (i + 1 < rowLength && map[i + 1, j] == c)
+                            i++;
+                        else
+                            return new Point(i, j);
+                        break;
+                    default:
+                        return new Point(i, j); // Non-arrow characters are single-cell nodes
+                }
+            }
+        }
+
     }
 }
