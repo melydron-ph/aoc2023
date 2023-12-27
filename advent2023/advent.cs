@@ -1821,11 +1821,29 @@ namespace advent2023
                 }
             }
 
-            PrintMap(map);
             Point startP = new Point(startX, startY);
+            Point endP = new Point(destX, destY);
+            Dictionary<Point, PathNode> pathNodes;
+            Dictionary<Point, PathConjuction> pathConjuctions;
+            BuildGraph(map, startP, out pathNodes, out pathConjuctions);
+
+            foreach (var pathNode in pathNodes)
+            {
+                Console.WriteLine(pathNode.ToString());
+            }
+
+            List<int> allPaths= FindAllPaths(pathNodes, pathConjuctions, startP, endP);
+            allPaths.Sort();
+            foreach (var pathLength in allPaths)
+            {
+                Console.WriteLine(pathLength);
+            }
+            //Console.WriteLine($"23*1 -- {allPaths[0]}");
+
+
         }
 
-            private static void ExitConsole()
+        private static void ExitConsole()
         {
             Console.WriteLine("\n\nPress any key to close console.");
             Console.ReadKey();

@@ -1646,7 +1646,7 @@ namespace advent2023
 
             public int Length { get; set; }
 
-            public PathConjuction Conjuction { get; set; }
+            public Point ConjuctionPoint { get; set; }
 
             public PathNode(Point start, Point end, int length)
             {
@@ -1655,125 +1655,212 @@ namespace advent2023
                 Length = length;
             }
 
+            public override string ToString()
+            {
+                return $"{Start} - {End} [{Length}] - {ConjuctionPoint}";
+            }
+
         }
 
         public class PathConjuction
         {
             public Point ConjuctionPoint { get; set; }
-            public bool HasAbove;
             public bool HasBelow;
-            public bool HasLeft;
             public bool HasRight;
 
-            public List<PathNode> NeighborNodes { get; set; }
+            public PathNode AbovePathNode { get; set; }
+            public PathNode BelowPathNode { get; set; }
+            public PathNode LeftPathNode { get; set; }
+            public PathNode RightPathNode { get; set; }
 
-            public PathConjuction(Point c, bool hasAbove = false, bool hasBelow = false, bool hasLeft = false, bool hasRight = false)
+            public PathConjuction(Point c)
             {
                 ConjuctionPoint = c;
-                HasAbove = hasAbove;
-                HasBelow = hasBelow;
-                HasLeft = hasLeft;
-                HasRight = hasRight;
             }
         }
 
-        internal static Dictionary<Point, PathNode> BuildGraph(char[,] map, Point startP)
+        internal static void BuildGraph(char[,] map, Point startP, out Dictionary<Point, PathNode> pathNodes, out Dictionary<Point, PathConjuction> pathConjuctions)
         {
             int rows = map.GetLength(0);
             int cols = map.GetLength(1);
-
-            Dictionary<Point, PathNode> PathNodes = new Dictionary<Point, PathNode>();
-            while (true)
-            {
-                Point end = FindNodeEndPoint(map, startP, out int length);
-                PathNode pn = new PathNode(startP, end, length);
-                PathConjuction pc = GetPathConjuction(map, end);
-                pn.Conjuction = pc;
-
-            }
+            Direction d = Direction.Down;
+            pathNodes = new Dictionary<Point, PathNode>();
+            pathConjuctions = new Dictionary<Point, PathConjuction>();
+            AddPointAndConjuction(map, startP, pathNodes, pathConjuctions);
         }
 
-        private static PathConjuction GetPathConjuction(char[,] map, Point end)
+
+        internal static void AddPointAndConjuction(char[,] map, Point startP, Dictionary<Point, PathNode> pathNodes, Dictionary<Point, PathConjuction> pathConjuctions)
         {
-            int i = end.X;
-            int j = end.Y;
+            Point end = FindNodeEndPoint(map, startP, out int length);
+            PathNode pn = new PathNode(startP, end, length);
+            Point cp = GetPathConjuction(map, pn, pathConjuctions);
+            pn.ConjuctionPoint = cp;
+            if (!pathNodes.ContainsKey(startP))
+            {
+                pathNodes.Add(startP, pn);
+            }
+            if (cp.X > -1)
+            {
+                if (pathConjuctions[cp].HasRight)
+                {
+                    Point new_startP = new Point(cp.X, cp.Y + 2);
+                    AddPointAndConjuction(map, new_startP, pathNodes, pathConjuctions);
+                    PathNode toAdd = pathNodes[new_startP];
+                    pathConjuctions[cp].RightPathNode = toAdd;
+                }
+                if (pathConjuctions[cp].HasBelow)
+                {
+                    Point new_startP = new Point(cp.X + 2, cp.Y);
+                    AddPointAndConjuction(map, new_startP, pathNodes, pathConjuctions);
+                    PathNode toAdd = pathNodes[new_startP];
+                    pathConjuctions[cp].BelowPathNode = toAdd;
+                }
+            }
+        }
+        private static Point GetPathConjuction(char[,] map, PathNode pn, Dictionary<Point, PathConjuction> pathConjuctions)
+        {
+            int i = pn.End.X;
+            if (i == map.GetLength(0) - 1)
+            {
+                return new Point(-1, -1);
+            }
+            int j = pn.End.Y;
             char c = map[i, j];
-            Direction d = new Direction();
             Point mid = new Point();
-            bool hasAbove = false;
-            bool hasBelow = false;
-            bool hasLeft= false;
-            bool hasRight = false;
+            bool fromLeft = false;
             if (c == '>')
             {
-                j = j = 1;
-                d = Direction.Right;
-                hasLeft = true;
+                j = j + 1;
+                fromLeft = true;
             }
             else if (c == 'v')
             {
                 i = i + 1;
-                d = Direction.Down;
-                hasAbove = true;
             }
             mid.X = i;
             mid.Y = j;
-            int rows = map.GetLength(0);
-            int cols = map.GetLength(1);
 
-            if (i + 1 < rows && (map[i + 1, j] == 'v'))
+            if (!pathConjuctions.ContainsKey(mid))
             {
-                hasBelow = true;
+                pathConjuctions[mid] = new PathConjuction(mid);
+                int rows = map.GetLength(0);
+                int cols = map.GetLength(1);
+                if (i + 1 < rows && (map[i + 1, j] == 'v'))
+                {
+                    pathConjuctions[mid].HasBelow = true;
+                }
+                if (j + 1 < cols && (map[i, j + 1] == '>'))
+                {
+                    pathConjuctions[mid].HasRight = true;
+                }
             }
-            if (j + 1 < cols && (map[i, j + 1] == '>'))
+            if (fromLeft)
             {
-                hasRight = true;
+                pathConjuctions[mid].LeftPathNode = pn;
             }
-            PathConjuction pj = new PathConjuction(mid, hasAbove, hasBelow, hasLeft, hasRight);
-            return pj;
+            else
+            {
+                pathConjuctions[mid].AbovePathNode = pn;
+            }
+
+            return mid;
         }
 
         internal static Point FindNodeEndPoint(char[,] map, Point start, out int length)
         {
             int i = start.X;
             int j = start.Y;
-            int rowLength = map.GetLength(0);
-            int colLength = map.GetLength(1);
+            char c = map[i, j];
             int steps = 0;
+
+            int mapX = map.GetLength(0);
+            int mapY = map.GetLength(1);
+
+            bool[,] visited = new bool[mapX, mapY];
+            visited[i, j] = true;
             while (true)
             {
-                char c = map[i, j];
-                length = steps++;
-                switch (c)
+                if (i + 1 < mapX && (map[i + 1, j] == '.' || map[i + 1, j] == 'v' || map[i + 1, j] == '>') && !visited[i + 1, j]) // down
                 {
-                    case '>':
-                        if (j + 1 < colLength && map[i, j + 1] == c)
-                            j++;
-                        else
-                            return new Point(i, j);
-                        break;
-                    case '<':
-                        if (j - 1 >= 0 && map[i, j - 1] == c)
-                            j--;
-                        else
-                            return new Point(i, j);
-                        break;
-                    case '^':
-                        if (i - 1 >= 0 && map[i - 1, j] == c)
-                            i--;
-                        else
-                            return new Point(i, j);
-                        break;
-                    case 'v':
-                        if (i + 1 < rowLength && map[i + 1, j] == c)
-                            i++;
-                        else
-                            return new Point(i, j);
-                        break;
-                    default:
-                        return new Point(i, j); // Non-arrow characters are single-cell nodes
+                    i = i + 1;
+                    visited[i, j] = true;
+                    steps++;
+                }
+                if (j + 1 < mapY && (map[i, j + 1] == '.' || map[i, j + 1] == 'v' || map[i, j + 1] == '>') && !visited[i, j + 1]) // right
+                {
+                    j = j + 1;
+                    visited[i, j] = true;
+                    steps++;
+                }
+                if (i > 0 && (map[i - 1, j] == '.' || map[i - 1, j] == 'v' || map[i - 1, j] == '>') && !visited[i - 1, j]) // up
+                {
+                    if (!(map[i - 1, j] == 'v' && steps == 0))
+                    {
+                        i = i - 1;
+                        visited[i, j] = true;
+                        steps++;
+                    }
+                }
+                if (j > 0 && (map[i, j - 1] == '.' || map[i, j - 1] == 'v' || map[i, j - 1] == '>') && !visited[i, j - 1]) // left
+                {
+                    if (!(map[i, j - 1] == '>' && steps == 0))
+                    {
+                        j = j - 1;
+                        visited[i, j] = true;
+                        steps++;
+                    }
+                }
+
+                if (map[i, j] == '>' || map[i, j] == 'v' || i == mapX - 1)
+                {
+                    if (i == mapX - 1)
+                        steps++;
+                    break;
                 }
             }
+            length = steps;
+            return new Point(i, j);
+        }
+
+        internal static List<int> FindAllPaths(Dictionary<Point, PathNode> pathNodes, Dictionary<Point, PathConjuction> pathConjuctions, Point start, Point end)
+        {
+            var visited = new HashSet<Point>();
+            List<int> allPaths = DFSAllPaths(pathNodes, pathConjuctions, start, end, 0, visited);
+            return allPaths;
+        }
+
+        private static List<int> DFSAllPaths(Dictionary<Point, PathNode> pathNodes, Dictionary<Point, PathConjuction> pathConjuctions, Point current, Point end, int currentLength, HashSet<Point> visited)
+        {
+            PathNode pn = pathNodes[current];
+
+            if (pn.End.Equals(end))
+            {
+                return new List<int> { currentLength + pn.Length };
+            }
+
+            if (visited.Contains(current))
+            {
+                return new List<int>();
+            }
+
+            visited.Add(current);
+            var allPaths = new List<int>();
+
+            PathConjuction pc = pathConjuctions[pathNodes[current].ConjuctionPoint];
+            if (pc.HasRight && pc.RightPathNode != null)
+            {
+                currentLength += 4; // 4 steps to enter and exit conjuction
+                allPaths.AddRange(DFSAllPaths(pathNodes, pathConjuctions, pc.RightPathNode.Start, end, currentLength + pc.RightPathNode.Length, visited));
+            }
+            if (pc.HasBelow && pc.BelowPathNode != null)
+            {
+                currentLength += 4; // 4 steps to enter and exit conjuction
+                allPaths.AddRange(DFSAllPaths(pathNodes, pathConjuctions, pc.BelowPathNode.Start, end, currentLength + pc.BelowPathNode.Length, visited));
+            }
+
+            visited.Remove(current);
+            return allPaths;
         }
 
     }
