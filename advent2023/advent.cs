@@ -18,6 +18,7 @@ using System.Runtime.Versioning;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using static advent2023.Helper;
 
 namespace advent2023
@@ -60,7 +61,8 @@ namespace advent2023
             //Day21_Star2();
             //Day22_Star1();
             //Day22_Star2();
-            Day23_Star1();
+            //Day23_Star1();
+            Day23_Star2();
             ExitConsole();
         }
 
@@ -1792,6 +1794,59 @@ namespace advent2023
 
         private static void Day23_Star1()
         {
+            //var textFile = @"C:\aoc\2023\day23\test.txt";
+            var textFile = @"C:\aoc\2023\day23\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            int mapX = lines[0].Length;
+            int mapY = lines.Count();
+            char[,] map = new char[mapX, mapY];
+            int startX = 0;
+            int startY = 0;
+            int destX = 0;
+            int destY = 0;
+            for (int i = 0; i < mapY; i++)
+            {
+                string line = lines[i];
+                for (int j = 0; j < mapX; j++)
+                {
+                    map[i, j] = line[j];
+                    if (i == 0 && map[i, j] == '.')
+                    {
+                        startX = i;
+                        startY = j;
+                    }
+                    if (i == mapY - 1 && map[i, j] == '.')
+                    {
+                        destX = i;
+                        destY = j;
+                    }
+                }
+            }
+
+            Point startP = new Point(startX, startY);
+            Point endP = new Point(destX, destY);
+            Dictionary<Point, PathNode> pathNodes;
+            Dictionary<Point, PathConjuction> pathConjuctions;
+            BuildGraph(map, startP, out pathNodes, out pathConjuctions);
+            List<List<PathNode>> allPaths = FindAllPaths(pathNodes, pathConjuctions, startP, endP, false);
+            int listTotal = 0;
+            List<int> pathTotals = new List<int>();
+            foreach (var path in allPaths)
+            {
+                listTotal = 0;
+                foreach (var node in path)
+                {
+                    listTotal += node.Length;
+                }
+                listTotal = listTotal + ((path.Count() - 1) * 3) - 1;
+                pathTotals.Add(listTotal);
+            }
+            pathTotals.Sort();
+            Console.WriteLine($"23*1 -- {pathTotals[pathTotals.Count()-1]}");
+        }
+
+        private static void Day23_Star2()
+        {
             var textFile = @"C:\aoc\2023\day23\test.txt";
             //var textFile = @"C:\aoc\2023\day23\input.txt";
             string[] lines = File.ReadAllLines(textFile);
@@ -1826,21 +1881,25 @@ namespace advent2023
             Dictionary<Point, PathNode> pathNodes;
             Dictionary<Point, PathConjuction> pathConjuctions;
             BuildGraph(map, startP, out pathNodes, out pathConjuctions);
-
-            foreach (var pathNode in pathNodes)
+            List<List<PathNode>> allPaths = FindAllPaths(pathNodes, pathConjuctions, startP, endP, true);
+            int listTotal;
+            int p = 0;
+            List<int> pathTotals = new List<int>();
+            foreach (var path in allPaths)
             {
-                Console.WriteLine(pathNode.ToString());
+                listTotal = 0;
+                //Console.WriteLine("------------");
+                //Console.WriteLine($"Path {p++}");
+                foreach (var node in path)
+                {
+                    listTotal += node.Length;
+                }
+                listTotal = listTotal + ((path.Count() - 1) * 3) - 1;
+                //Console.WriteLine(listTotal);
+                pathTotals.Add(listTotal);
             }
-
-            List<int> allPaths= FindAllPaths(pathNodes, pathConjuctions, startP, endP);
-            allPaths.Sort();
-            foreach (var pathLength in allPaths)
-            {
-                Console.WriteLine(pathLength);
-            }
-            //Console.WriteLine($"23*1 -- {allPaths[0]}");
-
-
+            pathTotals.Sort();
+            Console.WriteLine($"23*2 -- {pathTotals[pathTotals.Count() - 1]}");
         }
 
         private static void ExitConsole()

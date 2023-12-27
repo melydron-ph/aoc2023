@@ -1823,45 +1823,64 @@ namespace advent2023
             return new Point(i, j);
         }
 
-        internal static List<int> FindAllPaths(Dictionary<Point, PathNode> pathNodes, Dictionary<Point, PathConjuction> pathConjuctions, Point start, Point end)
+
+        internal static List<List<PathNode>> FindAllPaths(Dictionary<Point, PathNode> pathNodes, Dictionary<Point, PathConjuction> pathConjuctions, Point start, Point end, bool slipperySlopes)
         {
             var visited = new HashSet<Point>();
-            List<int> allPaths = DFSAllPaths(pathNodes, pathConjuctions, start, end, 0, visited);
+            List<PathNode> currentPath = new List<PathNode>();
+            PathNode pn = pathNodes[start];
+            currentPath.Add(pn);
+            List<List<PathNode>> allPaths = DFSAllPaths(pathNodes, pathConjuctions, start, end, currentPath, visited, slipperySlopes);
             return allPaths;
         }
 
-        private static List<int> DFSAllPaths(Dictionary<Point, PathNode> pathNodes, Dictionary<Point, PathConjuction> pathConjuctions, Point current, Point end, int currentLength, HashSet<Point> visited)
+        private static List<List<PathNode>> DFSAllPaths(Dictionary<Point, PathNode> pathNodes, Dictionary<Point, PathConjuction> pathConjuctions, Point current, Point end, List<PathNode> currentPath, HashSet<Point> visited, bool slipperySlopes)
         {
             PathNode pn = pathNodes[current];
 
             if (pn.End.Equals(end))
             {
-                return new List<int> { currentLength + pn.Length };
+                return new List<List<PathNode>> { new List<PathNode>(currentPath) };
             }
 
             if (visited.Contains(current))
             {
-                return new List<int>();
+                return new List<List<PathNode>>();
             }
 
             visited.Add(current);
-            var allPaths = new List<int>();
+            var allPaths = new List<List<PathNode>>();
 
             PathConjuction pc = pathConjuctions[pathNodes[current].ConjuctionPoint];
-            if (pc.HasRight && pc.RightPathNode != null)
+            if (pc.HasRight && pc.RightPathNode != null && !visited.Contains(pc.RightPathNode.Start))
             {
-                currentLength += 4; // 4 steps to enter and exit conjuction
-                allPaths.AddRange(DFSAllPaths(pathNodes, pathConjuctions, pc.RightPathNode.Start, end, currentLength + pc.RightPathNode.Length, visited));
+                currentPath.Add(pc.RightPathNode);
+                allPaths.AddRange(DFSAllPaths(pathNodes, pathConjuctions, pc.RightPathNode.Start, end, currentPath, visited, slipperySlopes));
+                currentPath.RemoveAt(currentPath.Count - 1); // Backtrack
             }
-            if (pc.HasBelow && pc.BelowPathNode != null)
+            if (pc.HasBelow && pc.BelowPathNode != null && !visited.Contains(pc.BelowPathNode.Start))
             {
-                currentLength += 4; // 4 steps to enter and exit conjuction
-                allPaths.AddRange(DFSAllPaths(pathNodes, pathConjuctions, pc.BelowPathNode.Start, end, currentLength + pc.BelowPathNode.Length, visited));
+                currentPath.Add(pc.BelowPathNode);
+                allPaths.AddRange(DFSAllPaths(pathNodes, pathConjuctions, pc.BelowPathNode.Start, end, currentPath, visited, slipperySlopes));
+                currentPath.RemoveAt(currentPath.Count - 1); // Backtrack
+            }
+            if (slipperySlopes  && pc.LeftPathNode != null && !visited.Contains(pc.LeftPathNode.Start))
+            {
+                currentPath.Add(pc.LeftPathNode);
+                allPaths.AddRange(DFSAllPaths(pathNodes, pathConjuctions, pc.LeftPathNode.Start, end, currentPath, visited, slipperySlopes));
+                currentPath.RemoveAt(currentPath.Count - 1); // Backtrack
+            }
+            if (slipperySlopes && pc.AbovePathNode != null && !visited.Contains(pc.AbovePathNode.Start))
+            {
+                currentPath.Add(pc.AbovePathNode);
+                allPaths.AddRange(DFSAllPaths(pathNodes, pathConjuctions, pc.AbovePathNode.Start, end, currentPath, visited, slipperySlopes));
+                currentPath.RemoveAt(currentPath.Count - 1); // Backtrack
             }
 
             visited.Remove(current);
             return allPaths;
         }
+
 
     }
 }
