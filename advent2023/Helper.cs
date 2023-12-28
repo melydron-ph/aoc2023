@@ -1830,11 +1830,11 @@ namespace advent2023
 
         internal static List<List<PathNode>> FindAllPaths(Dictionary<Point, PathNode> pathNodes, Dictionary<Point, PathConjuction> pathConjuctions, Point start, Point end, bool slipperySlopes)
         {
-            var visited = new HashSet<Point>();
+            var visited = new HashSet<PathConjuction>();
             List<PathNode> currentPath = new List<PathNode>();
             PathNode pn = pathNodes[start];
             Point lastPathStart = new Point();
-            foreach(KeyValuePair<Point, PathNode> p in pathNodes)
+            foreach (KeyValuePair<Point, PathNode> p in pathNodes)
             {
                 if (p.Value.EndConjuction.X == -1)
                 {
@@ -1857,7 +1857,7 @@ namespace advent2023
             return allPaths;
         }
 
-        private static List<List<PathNode>> DFSAllPaths(Dictionary<Point, PathNode> pathNodes, Dictionary<Point, PathConjuction> pathConjuctions, Point current, Point end, List<PathNode> currentPath, HashSet<Point> visited, bool slipperySlopes, Direction direction, List<PathNode> endingNodes)
+        private static List<List<PathNode>> DFSAllPaths(Dictionary<Point, PathNode> pathNodes, Dictionary<Point, PathConjuction> pathConjuctions, Point current, Point end, List<PathNode> currentPath, HashSet<PathConjuction> visited, bool slipperySlopes, Direction direction, List<PathNode> endingNodes)
         {
             PathNode pn = pathNodes[current];
 
@@ -1866,218 +1866,49 @@ namespace advent2023
                 //currentPath.Add(pn);
                 return new List<List<PathNode>> { new List<PathNode>(currentPath) };
             }
-
-            if (visited.Contains(current))
+            PathConjuction pc = pathConjuctions[pathNodes[current].EndConjuction];
+            if (direction == Direction.Left || direction == Direction.Up)
+            {
+                if (! (pathNodes[current].StartConjuction.X == 0)) // start
+                    pc = pathConjuctions[pathNodes[current].StartConjuction];
+            }
+            if (visited.Contains(pc))
             {
                 return new List<List<PathNode>>();
             }
 
-            visited.Add(current);
+            visited.Add(pc);
             var allPaths = new List<List<PathNode>>();
 
-            PathConjuction pc = pathConjuctions[pathNodes[current].EndConjuction];
-            if (direction == Direction.Left || direction == Direction.Up)
-            {
-                pc = pathConjuctions[pathNodes[current].StartConjuction];
-            }
 
-            if (pc.RightPathNode != null && !visited.Contains(pc.RightPathNode.Start))
+
+            if (pc.RightPathNode != null)
             {
                 currentPath.Add(pc.RightPathNode);
                 allPaths.AddRange(DFSAllPaths(pathNodes, pathConjuctions, pc.RightPathNode.Start, end, currentPath, visited, slipperySlopes, Direction.Right, endingNodes));
                 currentPath.RemoveAt(currentPath.Count - 1); // Backtrack
             }
-            if (pc.BelowPathNode != null && !visited.Contains(pc.BelowPathNode.Start))
+            if (pc.BelowPathNode != null)
             {
                 currentPath.Add(pc.BelowPathNode);
                 allPaths.AddRange(DFSAllPaths(pathNodes, pathConjuctions, pc.BelowPathNode.Start, end, currentPath, visited, slipperySlopes, Direction.Down, endingNodes));
                 currentPath.RemoveAt(currentPath.Count - 1); // Backtrack
             }
-            if (slipperySlopes && pc.LeftPathNode != null && !visited.Contains(pc.LeftPathNode.Start))
+            if (slipperySlopes && pc.LeftPathNode != null)
             {
                 currentPath.Add(pc.LeftPathNode);
                 allPaths.AddRange(DFSAllPaths(pathNodes, pathConjuctions, pc.LeftPathNode.Start, end, currentPath, visited, slipperySlopes, Direction.Left, endingNodes));
                 currentPath.RemoveAt(currentPath.Count - 1); // Backtrack
             }
-            if (slipperySlopes && pc.AbovePathNode != null && !visited.Contains(pc.AbovePathNode.Start))
+            if (slipperySlopes && pc.AbovePathNode != null)
             {
                 currentPath.Add(pc.AbovePathNode);
                 allPaths.AddRange(DFSAllPaths(pathNodes, pathConjuctions, pc.AbovePathNode.Start, end, currentPath, visited, slipperySlopes, Direction.Up, endingNodes));
                 currentPath.RemoveAt(currentPath.Count - 1); // Backtrack
             }
 
-            visited.Remove(current);
+            visited.Remove(pc);
             return allPaths;
         }
-
-
-        internal static int FindMaxLength(Dictionary<Point, PathNode> pathNodes, Dictionary<Point, PathConjuction> pathConjuctions, Point start, Point end, bool slipperySlopes)
-        {
-            var visited = new HashSet<Point>();
-            int currentLength = 0;
-            PathNode pn = pathNodes[start];
-            int maxLength = DFSAllLengths(pathNodes, pathConjuctions, start, end, currentLength, visited, slipperySlopes, Direction.Down);
-            return maxLength;
-        }
-
-        private static int DFSAllLengths(Dictionary<Point, PathNode> pathNodes, Dictionary<Point, PathConjuction> pathConjuctions, Point current, Point end, int currentLength, HashSet<Point> visited, bool slipperySlopes, Direction direction)
-        {
-            PathNode pn = pathNodes[current];
-            currentLength += pn.Length;
-            if (pn.End.Equals(end))
-            {
-
-                return currentLength;
-            }
-
-            if (visited.Contains(current))
-            {
-                return 0;
-            }
-
-            visited.Add(current);
-
-            int maxLength = 0;
-            PathConjuction pc = pathConjuctions[pathNodes[current].EndConjuction];
-            if (direction == Direction.Left || direction == Direction.Up)
-            {
-                pc = pathConjuctions[pathNodes[current].StartConjuction];
-            }
-
-            if (pc.RightPathNode != null && !visited.Contains(pc.RightPathNode.Start))
-            {
-                currentLength += 3;
-                int nextLength = DFSAllLengths(pathNodes, pathConjuctions, pc.RightPathNode.Start, end, currentLength, visited, slipperySlopes, Direction.Right);
-                if (nextLength > maxLength)
-                {
-                    maxLength = nextLength;
-                }
-
-            }
-            if (pc.BelowPathNode != null && !visited.Contains(pc.BelowPathNode.Start))
-            {
-                currentLength += 3;
-                int nextLength = DFSAllLengths(pathNodes, pathConjuctions, pc.BelowPathNode.Start, end, currentLength, visited, slipperySlopes, Direction.Down);
-                if (nextLength > maxLength)
-                {
-                    maxLength = nextLength;
-                }
-
-            }
-            if (slipperySlopes && pc.LeftPathNode != null && !visited.Contains(pc.LeftPathNode.Start))
-            {
-                currentLength += 3;
-                int nextLength = DFSAllLengths(pathNodes, pathConjuctions, pc.LeftPathNode.Start, end, currentLength, visited, slipperySlopes, Direction.Left);
-                if (nextLength > maxLength)
-                {
-                    maxLength = nextLength;
-                }
-
-            }
-            if (slipperySlopes && pc.AbovePathNode != null && !visited.Contains(pc.AbovePathNode.Start))
-            {
-                currentLength += 3;
-                int nextLength = DFSAllLengths(pathNodes, pathConjuctions, pc.AbovePathNode.Start, end, currentLength, visited, slipperySlopes, Direction.Up);
-                if (nextLength > maxLength)
-                {
-                    maxLength = nextLength;
-                }
-
-            }
-            visited.Remove(current);
-            return maxLength;
-        }
-
-        public static Dictionary<Point, PathConjuction> PruneConjuctions(Dictionary<Point, PathConjuction> pathConjuctions)
-        {
-            Dictionary<Point, PathConjuction> newConjuctions = new Dictionary<Point, PathConjuction>();
-
-            foreach (KeyValuePair<Point, PathConjuction> c in pathConjuctions)
-            {
-                if (c.Value.AbovePathNode != null && c.Value.BelowPathNode != null && c.Value.LeftPathNode != null && c.Value.RightPathNode != null)
-                {
-
-                    int a = c.Value.AbovePathNode.Length;
-                    int b = c.Value.BelowPathNode.Length;
-                    int l = c.Value.LeftPathNode.Length;
-                    int r = c.Value.RightPathNode.Length;
-
-                    if (Math.Min(a, Math.Min(b, Math.Min(l, r))) == a) // prune Above
-                    {
-                        c.Value.AbovePathNode = null;
-                    }
-                    else if (Math.Min(a, Math.Min(b, Math.Min(l, r))) == b) // prune Below
-                    {
-                        c.Value.BelowPathNode = null;
-                    }
-                    else if (Math.Min(a, Math.Min(b, Math.Min(l, r))) == l) // prune Left
-                    {
-                        c.Value.LeftPathNode = null;
-                    }
-                    else // prune Right
-                    {
-                        c.Value.RightPathNode = null;
-                    }
-                }
-                newConjuctions.Add(c.Key, c.Value);
-            }
-            return newConjuctions;
-        }
-
-
-        internal static List<int> FindAllPathLengths(Dictionary<Point, PathNode> pathNodes, Dictionary<Point, PathConjuction> pathConjuctions, Point start, Point end, bool slipperySlopes)
-        {
-            var visited = new HashSet<Point>();
-            int currentLength = 0;
-            PathNode pn = pathNodes[start];
-            List<int> allPaths = DFSAllPathLengths(pathNodes, pathConjuctions, start, end, currentLength, visited, slipperySlopes, Direction.Down);
-            return allPaths;
-        }
-
-        private static List<int> DFSAllPathLengths(Dictionary<Point, PathNode> pathNodes, Dictionary<Point, PathConjuction> pathConjuctions, Point current, Point end, int currentLength, HashSet<Point> visited, bool slipperySlopes, Direction direction)
-        {
-            PathNode pn = pathNodes[current];
-            currentLength = currentLength + pn.Length;
-            if (pn.End.Equals(end))
-            {
-                return new List<int> { currentLength - 1 };
-            }
-
-            if (visited.Contains(current))
-            {
-                return new List<int>();
-            }
-
-            visited.Add(current);
-            var allPaths = new List<int>();
-
-            PathConjuction pc = pathConjuctions[pathNodes[current].EndConjuction];
-            if (direction == Direction.Left || direction == Direction.Up)
-            {
-                pc = pathConjuctions[pathNodes[current].StartConjuction];
-            }
-
-            void ExplorePath(PathNode nextNode, Direction nextDirection)
-            {
-                if (nextNode != null && !visited.Contains(nextNode.Start))
-                {
-                    currentLength += 3;
-                    allPaths.AddRange(DFSAllPathLengths(pathNodes, pathConjuctions, nextNode.Start, end, currentLength, visited, slipperySlopes, nextDirection));
-                    currentLength -= 3;
-                }
-            }
-
-            ExplorePath(pc.RightPathNode, Direction.Right);
-            ExplorePath(pc.BelowPathNode, Direction.Down);
-            if (slipperySlopes)
-            {
-                ExplorePath(pc.LeftPathNode, Direction.Left);
-                ExplorePath(pc.AbovePathNode, Direction.Up);
-            }
-
-            visited.Remove(current);
-            return allPaths;
-        }
-
     }
 }

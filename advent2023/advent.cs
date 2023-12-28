@@ -1881,8 +1881,7 @@ namespace advent2023
             Dictionary<Point, PathNode> pathNodes;
             Dictionary<Point, PathConjuction> pathConjuctions;
             BuildGraph(map, startP, out pathNodes, out pathConjuctions);
-            pathConjuctions = PruneConjuctions(pathConjuctions);
-            List<List<PathNode>> allPaths = FindAllPaths(pathNodes, pathConjuctions, startP, endP, false);
+            List<List<PathNode>> allPaths = FindAllPaths(pathNodes, pathConjuctions, startP, endP, true);
             int listTotal;
             List<int> pathTotals = new List<int>();
             foreach (var path in allPaths)
