@@ -893,6 +893,18 @@ namespace advent2023
             Console.WriteLine("11*2 -- " + total);
         }
 
+        private static void Day12_Star1()
+        {
+            var textFile = @"C:\aoc\2023\day12\test.txt";
+            //var textFile = @"C:\aoc\2023\day12\input.txt";
+            string[] lines = File.ReadAllLines(textFile);
+            foreach (string line in lines)
+            {
+
+            }
+            Console.WriteLine("12*1 -- ");
+        }
+
         private static void Day15_Star1()
         {
             //var textFile = @"C:\aoc\2023\day15\test.txt";
